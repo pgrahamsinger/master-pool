@@ -1,4 +1,4 @@
-# Churchill Masters Pool 2026
+# Graham's Masters Pool 2026
 
 A live Calcutta auction pool app with real-time bidding and tournament scoring.
 

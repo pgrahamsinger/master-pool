@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Churchill Masters Pool 2026</title>
+  <title>Graham's Masters Pool 2026</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -222,7 +222,7 @@
 
 <!-- Header (hidden until logged in) -->
 <div id="hdr" style="display:none">
-  <h1 id="pool-name">Churchill Masters Pool 2026</h1>
+  <h1 id="pool-name">Graham's Masters Pool 2026</h1>
   <div class="hdr-right">
     <span id="phase-pill" class="phase-pill">Setup</span>
     <span id="pot-badge" class="pot-badge"></span>
@@ -234,7 +234,7 @@
 <div id="join-screen">
   <div class="join-box">
     <h1>⛳ Masters Pool</h1>
-    <div class="sub">Churchill Real Estate 2026</div>
+    <div class="sub">Masters 2026</div>
     <div class="fg">
       <label>Room Code</label>
       <input type="text" id="j-code" placeholder="e.g. ABC123"
@@ -244,12 +244,12 @@
     <div class="fg"><label>Your Name</label>
       <input type="text" id="j-name" placeholder="First Last" /></div>
     <div class="fg"><label>Your Email</label>
-      <input type="email" id="j-email" placeholder="you@churchillre.com"
+      <input type="email" id="j-email" placeholder="your@email.com"
         onkeydown="if(event.key==='Enter')submitJoin()" /></div>
     <button class="join-btn" onclick="submitJoin()">Join Pool →</button>
     <div id="join-error" class="join-error"></div>
     <div class="divider" style="margin-top:18px"></div>
-    <p style="font-size:0.74rem;color:var(--muted)">Admin? <a href="#" onclick="openAdminLogin();return false" style="color:var(--green)">Log in here</a></p>
+    <button class="btn btn-out" style="width:100%;font-size:0.82rem;padding:9px;color:var(--muted)" onclick="openAdminLogin()">⚙ Admin Login</button>
   </div>
 </div>
 
@@ -900,10 +900,13 @@ function toggleAdmin(){if(isAdmin){isAdmin=false;adminPw='';renderHeader();rende
 function openAdminLogin(){openM('m-login');setTimeout(()=>document.getElementById('m-pw')?.focus(),60);}
 async function doAdminLogin(){
   const pw=document.getElementById('m-pw').value;
-  const r=await fetch('/api/admin/verify',{headers:{'x-admin-password':pw}});
-  const d=await r.json();
-  if(d.ok){adminPw=pw;isAdmin=true;if(!me)me={id:'__admin__',name:'Admin',email:''};closeM('m-login');document.getElementById('m-pw').value='';showMain();showToast('Admin mode ✓');}
-  else{showToast('Wrong password',true);document.getElementById('m-pw').select();}
+  if(!pw){showToast('Enter a password.',true);return;}
+  try{
+    const r=await fetch('/api/admin/verify',{headers:{'x-admin-password':pw}});
+    const d=await r.json();
+    if(d.ok){adminPw=pw;isAdmin=true;if(!me)me={id:'__admin__',name:'Admin',email:''};closeM('m-login');document.getElementById('m-pw').value='';showMain();showToast('Admin mode ✓');}
+    else{showToast('Wrong password.',true);document.getElementById('m-pw').select();}
+  }catch(e){showToast('Cannot reach server. Make sure it is running (node server.js) and try again.',true);}
 }
 async function adminAPI(ep,data={}){
   try{const r=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json','x-admin-password':adminPw},body:JSON.stringify(data)});return r.json();}

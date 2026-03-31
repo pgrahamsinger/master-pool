@@ -99,7 +99,7 @@ const DEFAULT_STATE = {
   phase:    'setup',             // 'setup' | 'lobby' | 'auction' | 'scoring' | 'final'
   roomCode: genRoomCode(),
   settings: {
-    poolName:            'Churchill Masters Pool 2026',
+    poolName:            "Graham's Masters Pool 2026",
     adminPassword:       'masters2026',
     charityPercent:      20,
     payoutSplit:         [60, 25, 15],
@@ -451,7 +451,7 @@ httpServer.listen(PORT, '0.0.0.0', () => {
   const localIP = Object.values(os.networkInterfaces()).flat()
     .find(i => i?.family === 'IPv4' && !i.internal)?.address || 'localhost';
 
-  console.log('\n🏌️  Churchill Masters Pool 2026');
+  console.log("\n🏌️  Graham's Masters Pool 2026");
   console.log('══════════════════════════════════════');
   console.log(`  Local:     http://localhost:${PORT}`);
   console.log(`  Network:   http://${localIP}:${PORT}`);

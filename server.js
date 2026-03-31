@@ -185,7 +185,7 @@ const requireAdmin = (req, res, next) => {
 // ─── Public routes ────────────────────────────────────────────────────────────
 app.get('/api/state', (_req, res) => res.json(state));
 
-app.post('/api/admin/verify', (req, res) => {
+app.get('/api/admin/verify', (req, res) => {
   res.json({ ok: req.headers['x-admin-password'] === state.settings.adminPassword });
 });
 

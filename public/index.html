@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Churchill Masters Pool 2026</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green:   #00573F;
+      --green2:  #006747;
+      --gold:    #C9A84C;
+      --gold-lt: #E8C97A;
+      --cream:   #F7F2E8;
+      --cream2:  #EDE5D4;
+      --red:     #B22222;
+      --blue:    #1a4a8a;
+      --amber:   #D97706;
+      --text:    #1A1A1A;
+      --muted:   #6B7280;
+      --white:   #FFFFFF;
+    }
+    *  { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+    h1,h2,h3 { font-family: 'Playfair Display', serif; }
+
+    /* ── Header ──────────────────────────────────── */
+    #hdr {
+      background: var(--green);
+      color: white;
+      padding: 0 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px; min-height: 60px;
+    }
+    #hdr h1 { font-size: 1.15rem; color: var(--gold-lt); white-space: nowrap; }
+    .hdr-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .phase-pill {
+      background: var(--gold); color: var(--green);
+      font-weight: 700; font-size: 0.7rem; padding: 3px 10px;
+      border-radius: 20px; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .pot-badge { font-size: 0.82rem; opacity: 0.85; }
+    .pot-badge span { color: var(--gold-lt); font-weight: 600; }
+    .admin-btn {
+      background: transparent; border: 1px solid rgba(255,255,255,0.35);
+      color: white; padding: 5px 13px; border-radius: 6px;
+      cursor: pointer; font-size: 0.78rem; font-family: inherit;
+    }
+    .admin-btn.on { background: var(--gold); color: var(--green); border-color: var(--gold); font-weight: 700; }
+    #app { max-width: 1100px; margin: 0 auto; padding: 24px 16px 60px; }
+
+    /* ── Cards ───────────────────────────────────── */
+    .card { background: white; border-radius: 12px; border: 1px solid var(--cream2); box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 22px; margin-bottom: 18px; }
+    .ctitle { font-size: 0.95rem; font-weight: 600; color: var(--green); margin-bottom: 14px; display: flex; align-items: center; gap: 7px; }
+
+    /* ── Buttons ─────────────────────────────────── */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 7px; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 500; font-family: inherit; transition: opacity 0.15s, background 0.15s; }
+    .btn:disabled { opacity: 0.38; cursor: not-allowed; }
+    .btn-green  { background: var(--green); color: white; }
+    .btn-green:not(:disabled):hover  { background: var(--green2); }
+    .btn-gold   { background: var(--gold); color: var(--green); font-weight: 700; }
+    .btn-gold:not(:disabled):hover   { opacity: 0.85; }
+    .btn-out    { background: transparent; border: 1px solid var(--green); color: var(--green); }
+    .btn-out:not(:disabled):hover    { background: var(--cream); }
+    .btn-danger { background: #FEE2E2; color: var(--red); border: 1px solid #FCA5A5; }
+    .btn-sm { padding: 5px 12px; font-size: 0.78rem; }
+
+    /* ── Forms ───────────────────────────────────── */
+    .fg { margin-bottom: 13px; }
+    label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+    input[type=text], input[type=number], input[type=email], input[type=password], select {
+      width: 100%; padding: 9px 12px; border: 1px solid #D1D5DB;
+      border-radius: 7px; font-size: 0.9rem; font-family: inherit; background: white;
+    }
+    input:focus, select:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,87,63,0.12); }
+
+    /* ── Tables ──────────────────────────────────── */
+    .tw { overflow-x: auto; border-radius: 9px; border: 1px solid var(--cream2); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    thead th { background: var(--green); color: var(--gold-lt); padding: 9px 12px; text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+    tbody tr { border-bottom: 1px solid #F3F4F6; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #F9FAFB; }
+    td { padding: 9px 12px; }
+    .su { color: var(--blue); font-weight: 700; }
+    .so { color: var(--red);  font-weight: 700; }
+    .se { color: var(--text); font-weight: 600; }
+
+    /* ── Tabs ────────────────────────────────────── */
+    .tabs { display: flex; gap: 3px; margin-bottom: 18px; background: #F3F4F6; border-radius: 8px; padding: 3px; width: fit-content; }
+    .tab { padding: 6px 16px; border-radius: 6px; border: none; font-size: 0.83rem; font-weight: 500; cursor: pointer; background: transparent; color: var(--muted); font-family: inherit; }
+    .tab.on { background: white; color: var(--green); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+    /* ── Grids ───────────────────────────────────── */
+    .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+    @media(max-width:680px) { .g2,.g3 { grid-template-columns: 1fr; } }
+
+    /* ── Stat tiles ──────────────────────────────── */
+    .tile { background: white; border: 1px solid var(--cream2); border-radius: 10px; padding: 14px 18px; text-align: center; }
+    .tile .tl { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 4px; }
+    .tile .tv { font-size: 1.4rem; font-weight: 700; color: var(--green); }
+
+    /* ── Modals ──────────────────────────────────── */
+    .backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
+    .backdrop.open { display: flex; }
+    .modal { background: white; border-radius: 14px; padding: 26px; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .modal h2 { font-size: 1.15rem; color: var(--green); margin-bottom: 18px; }
+    .mclose { float: right; background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--muted); line-height: 1; margin-top: -4px; }
+
+    /* ── Join screen ─────────────────────────────── */
+    #join-screen {
+      min-height: 100vh;
+      background: linear-gradient(160deg, var(--green) 0%, #1a8060 100%);
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+    }
+    .join-box { background: white; border-radius: 16px; padding: 36px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
+    .join-box h1 { font-size: 1.6rem; color: var(--green); margin-bottom: 6px; }
+    .join-box .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 28px; }
+    .join-box .fg { text-align: left; }
+    .join-btn { width: 100%; padding: 12px; font-size: 1rem; background: var(--green); color: white; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: 600; margin-top: 6px; }
+    .join-btn:hover { background: var(--green2); }
+    .join-error { color: var(--red); font-size: 0.85rem; margin-top: 10px; }
+
+    /* ── Countdown timer ─────────────────────────── */
+    #timer-bar {
+      background: linear-gradient(135deg, var(--green) 0%, #1a8060 100%);
+      color: white; border-radius: 12px; padding: 16px 22px;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+      margin-bottom: 18px;
+    }
+    #timer-bar .tclock { font-size: 2rem; font-weight: 700; font-family: 'Playfair Display', serif; color: var(--gold-lt); }
+    #timer-bar.urgent .tclock { color: #FF8080; animation: pulse 1s infinite; }
+    #timer-bar.ended { background: #374151; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    .tlabel { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; opacity: 0.8; margin-bottom: 3px; }
+
+    /* ── Golfer auction grid ─────────────────────── */
+    .golfer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 11px; }
+    .gc {
+      background: white; border-radius: 11px; border: 2px solid var(--cream2);
+      padding: 13px 13px 11px; cursor: pointer; transition: all 0.15s; position: relative;
+    }
+    .gc:hover { border-color: var(--green); box-shadow: 0 2px 12px rgba(0,87,63,0.15); }
+    .gc.leading { border-color: #34D399; background: #F0FBF6; }
+    .gc.outbid   { border-color: var(--amber); background: #FFFBF0; }
+    .gc .gname   { font-weight: 600; font-size: 0.88rem; line-height: 1.3; padding-right: 52px; }
+    .gc .grank   { font-size: 0.7rem; color: var(--muted); margin-bottom: 9px; }
+    .gc .gcur    { font-size: 1.05rem; font-weight: 700; color: var(--green); }
+    .gc .gleader { font-size: 0.73rem; color: var(--muted); margin-bottom: 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gc .gbids   { font-size: 0.68rem; color: var(--muted); }
+    .gc-badge { position: absolute; top: 8px; right: 8px; font-size: 0.6rem; font-weight: 700; padding: 2px 6px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .gc-badge.lead   { background: #D1FAE5; color: #065F46; }
+    .gc-badge.outbid { background: #FEF3C7; color: #92400E; }
+    .gc-bid-btn { width: 100%; margin-top: 9px; padding: 7px 0; border-radius: 7px; border: none; font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .gc-bid-btn.can    { background: var(--green); color: white; }
+    .gc-bid-btn.can:hover { opacity: 0.85; }
+    .gc-bid-btn.lead   { background: #D1FAE5; color: #065F46; cursor: default; }
+    .gc-bid-btn.atmax  { background: #F3F4F6; color: var(--muted); cursor: not-allowed; }
+    .gc-bid-btn.ended  { background: #F3F4F6; color: var(--muted); cursor: default; }
+
+    /* ── My golfers strip ────────────────────────── */
+    #my-strip { background: white; border: 1px solid var(--cream2); border-radius: 11px; padding: 13px 17px; margin-bottom: 16px; }
+    #my-strip .ms-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 8px; }
+    .my-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .my-chip  { display: flex; align-items: center; gap: 6px; background: #F0FBF6; border: 1px solid #34D399; border-radius: 7px; padding: 5px 11px; font-size: 0.8rem; }
+    .my-chip .cn { font-weight: 600; color: var(--green); }
+    .my-chip .ca { color: var(--green); font-weight: 700; }
+
+    /* ── Bid modal ───────────────────────────────── */
+    #bid-golfer-name { font-size: 1.25rem; color: var(--green); font-family: 'Playfair Display', serif; margin-bottom: 4px; }
+    #bid-current-info { color: var(--muted); font-size: 0.83rem; margin-bottom: 16px; }
+    .quick-bids { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
+    .qb { padding: 5px 11px; border: 1px solid var(--cream2); border-radius: 6px; font-size: 0.78rem; cursor: pointer; font-family: inherit; background: white; }
+    .qb:hover { background: var(--cream); border-color: var(--green); }
+
+    /* ── Admin panel ─────────────────────────────── */
+    #admin-panel { background: #FFFBF0; border: 1px solid var(--gold); border-radius: 10px; padding: 13px 17px; margin-bottom: 16px; }
+    #admin-panel .apl { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber); margin-bottom: 9px; }
+    .aflex { display: flex; gap: 7px; flex-wrap: wrap; align-items: flex-end; }
+
+    /* ── Room code ───────────────────────────────── */
+    .room-code-box { background: var(--green); color: white; border-radius: 12px; padding: 20px 22px; text-align: center; margin-bottom: 18px; }
+    .room-code-box .rclabel { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.8; margin-bottom: 7px; }
+    .room-code-box .rc { font-size: 2.7rem; font-weight: 700; letter-spacing: 0.14em; color: var(--gold-lt); font-family: monospace; }
+    .room-code-box .rcsub { font-size: 0.78rem; opacity: 0.7; margin-top: 5px; }
+
+    /* ── Filter row ──────────────────────────────── */
+    .filter-row { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 13px; align-items: center; }
+    .filter-row input { max-width: 200px; }
+    .fbtn { padding: 5px 12px; border-radius: 6px; border: 1px solid var(--cream2); background: white; cursor: pointer; font-size: 0.78rem; font-family: inherit; }
+    .fbtn.on { background: var(--green); color: white; border-color: var(--green); }
+
+    /* ── Misc ────────────────────────────────────── */
+    .divider { height: 1px; background: var(--cream2); margin: 13px 0; }
+    .muted { color: var(--muted); font-size: 0.84rem; }
+    .tg    { color: var(--green); font-weight: 600; }
+    .mt2 { margin-top: 8px; } .mt3 { margin-top: 14px; } .mt4 { margin-top: 20px; }
+    .fx { display: flex; align-items: center; } .g2px { gap: 8px; } .g3px { gap: 14px; }
+    .jb { justify-content: space-between; } .fw { flex-wrap: wrap; }
+    .irow { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+    .irow .fg { margin-bottom: 0; flex: 1; }
+    .empty { text-align: center; padding: 30px; color: var(--muted); }
+    .owner-tag { display: inline-block; background: #EEF7EE; color: var(--green); font-size: 0.72rem; padding: 2px 8px; border-radius: 11px; font-weight: 500; }
+    #toast { position: fixed; bottom: 20px; right: 20px; background: var(--green); color: white; padding: 10px 17px; border-radius: 9px; font-size: 0.83rem; font-weight: 500; box-shadow: 0 4px 20px rgba(0,0,0,0.25); display: none; z-index: 300; max-width: 300px; }
+    #toast.err { background: var(--red); }
+    .spin { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .payout-row { display: flex; align-items: center; gap: 11px; padding: 10px 0; border-bottom: 1px solid #F3F4F6; }
+    .payout-row:last-child { border-bottom: none; }
+    .pr-med { font-size: 1.3rem; width: 30px; text-align: center; }
+    .pr-info { flex: 1; }
+    .pr-golfer { font-weight: 600; font-size: 0.88rem; }
+    .pr-owner  { font-size: 0.76rem; color: var(--muted); }
+    .pr-amt    { font-size: 1rem; font-weight: 700; color: var(--green); }
+    .winner-banner { background: linear-gradient(135deg, var(--green), #1a8060); color: white; border-radius: 14px; padding: 32px; text-align: center; margin-bottom: 18px; }
+    .winner-banner h2 { font-size: 1.9rem; color: var(--gold-lt); }
+    .winner-banner .ws { opacity: 0.85; margin-top: 6px; font-size: 0.92rem; }
+  </style>
+</head>
+<body>
+
+<!-- Header (hidden until logged in) -->
+<div id="hdr" style="display:none">
+  <h1 id="pool-name">Churchill Masters Pool 2026</h1>
+  <div class="hdr-right">
+    <span id="phase-pill" class="phase-pill">Setup</span>
+    <span id="pot-badge" class="pot-badge"></span>
+    <button id="admin-btn" class="admin-btn" onclick="toggleAdmin()">⚙ Admin</button>
+  </div>
+</div>
+
+<!-- Join screen -->
+<div id="join-screen">
+  <div class="join-box">
+    <h1>⛳ Masters Pool</h1>
+    <div class="sub">Churchill Real Estate 2026</div>
+    <div class="fg">
+      <label>Room Code</label>
+      <input type="text" id="j-code" placeholder="e.g. ABC123"
+        style="text-transform:uppercase;letter-spacing:0.12em;font-weight:700;font-size:1.05rem;text-align:center"
+        maxlength="6" oninput="this.value=this.value.toUpperCase()" />
+    </div>
+    <div class="fg"><label>Your Name</label>
+      <input type="text" id="j-name" placeholder="First Last" /></div>
+    <div class="fg"><label>Your Email</label>
+      <input type="email" id="j-email" placeholder="you@churchillre.com"
+        onkeydown="if(event.key==='Enter')submitJoin()" /></div>
+    <button class="join-btn" onclick="submitJoin()">Join Pool →</button>
+    <div id="join-error" class="join-error"></div>
+    <div class="divider" style="margin-top:18px"></div>
+    <p style="font-size:0.74rem;color:var(--muted)">Admin? <a href="#" onclick="openAdminLogin();return false" style="color:var(--green)">Log in here</a></p>
+  </div>
+</div>
+
+<!-- Main app -->
+<div id="app" style="display:none"></div>
+
+<!-- ── Modals ──────────────────────────────────────────────────────────────── -->
+
+<div id="m-login" class="backdrop">
+  <div class="modal">
+    <h2>Admin Login</h2>
+    <div class="fg"><label>Admin Password</label>
+      <input type="password" id="m-pw" onkeydown="if(event.key==='Enter')doAdminLogin()" /></div>
+    <div class="fx g2px mt3">
+      <button class="btn btn-green" onclick="doAdminLogin()">Sign In</button>
+      <button class="btn btn-out" onclick="closeM('m-login')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="m-start" class="backdrop">
+  <div class="modal">
+    <h2>🔨 Start Live Auction</h2>
+    <p class="muted" style="margin-bottom:16px">All golfers open for bidding simultaneously. Bidding ends when the timer expires or you end it early.</p>
+    <div class="fg"><label>Auction Duration</label>
+      <select id="m-dur">
+        <option value="15">15 minutes</option>
+        <option value="20">20 minutes</option>
+        <option value="30" selected>30 minutes</option>
+        <option value="45">45 minutes</option>
+        <option value="60">1 hour</option>
+        <option value="90">1.5 hours</option>
+        <option value="120">2 hours</option>
+      </select></div>
+    <p class="muted">Anti-snipe: any bid in the last <strong id="snipe-min">2</strong> minutes extends the timer by that amount.</p>
+    <div class="fx g2px mt3">
+      <button class="btn btn-gold" onclick="startAuction()">Start Auction</button>
+      <button class="btn btn-out" onclick="closeM('m-start')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="m-bid" class="backdrop">
+  <div class="modal">
+    <button class="mclose" onclick="closeM('m-bid')">×</button>
+    <div id="bid-golfer-name">Golfer</div>
+    <div id="bid-current-info">No bids yet</div>
+    <div class="fg mt3"><label>Your Bid ($)</label>
+      <input type="number" id="bid-amt" min="1" step="1"
+        onkeydown="if(event.key==='Enter')submitBid()" /></div>
+    <div class="quick-bids" id="quick-bids"></div>
+    <div class="fx g2px mt3">
+      <button class="btn btn-gold" onclick="submitBid()">Place Bid</button>
+      <button class="btn btn-out" onclick="closeM('m-bid')">Cancel</button>
+    </div>
+    <div id="bid-error" style="color:var(--red);font-size:0.82rem;margin-top:8px"></div>
+  </div>
+</div>
+
+<div id="m-scores" class="backdrop">
+  <div class="modal" style="max-width:570px">
+    <button class="mclose" onclick="closeM('m-scores')">×</button>
+    <h2>Manual Score Entry</h2>
+    <p class="muted mt2">Pos: T2, 1, MC, WD &nbsp;|&nbsp; Score: -8, +2, E</p>
+    <div id="score-rows" class="mt3" style="max-height:55vh;overflow-y:auto"></div>
+    <div class="fx g2px mt3">
+      <button class="btn btn-green" onclick="saveManualScores()">Save</button>
+      <button class="btn btn-out" onclick="closeM('m-scores')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+// ──────────────────────────────────────────────
+//  Global state
+// ──────────────────────────────────────────────
+let S          = null;   // server state mirror
+let me         = null;   // current participant { id, name, email }
+let isAdmin    = false;
+let adminPw    = '';
+let sTab       = 'standings';
+let bidGolfId  = null;
+let timerIval  = null;
+let gFilter    = 'all';  // 'all' | 'mine' | 'hot' | 'unbid'
+
+// ──────────────────────────────────────────────
+//  Session (survives page refresh in same tab)
+// ──────────────────────────────────────────────
+(function loadSession() {
+  try { const r = sessionStorage.getItem('mp_me'); if (r) me = JSON.parse(r); } catch {}
+})();
+function saveSession() { try { sessionStorage.setItem('mp_me', JSON.stringify(me)); } catch {} }
+
+// ──────────────────────────────────────────────
+//  Socket
+// ──────────────────────────────────────────────
+const socket = io();
+socket.on('state_update', state => { S = state; onState(); });
+
+// ──────────────────────────────────────────────
+//  Boot logic
+// ──────────────────────────────────────────────
+function onState() {
+  if (!S) return;
+  // Sync snipe label whenever state arrives
+  const sl = document.getElementById('snipe-min');
+  if (sl) sl.textContent = S.settings.antiSnipeMinutes;
+
+  const loggedIn = me || isAdmin;
+  if (!loggedIn) { showJoin(); return; }
+  showMain();
+}
+
+function showJoin() {
+  document.getElementById('join-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('hdr').style.display = 'none';
+}
+
+function showMain() {
+  document.getElementById('join-screen').style.display = 'none';
+  document.getElementById('hdr').style.display = 'flex';
+  document.getElementById('app').style.display = 'block';
+  renderHeader();
+  renderPhase();
+}
+
+// ──────────────────────────────────────────────
+//  Header
+// ──────────────────────────────────────────────
+function renderHeader() {
+  document.getElementById('pool-name').textContent = S.settings.poolName;
+  const labels = { setup:'Setup', lobby:'Lobby', auction:'Live Auction', scoring:'Tournament', final:'Final' };
+  document.getElementById('phase-pill').textContent = labels[S.phase] || S.phase;
+  const pot = livePot();
+  document.getElementById('pot-badge').innerHTML = pot > 0 ? `Pot: <span>${fmt$(pot)}</span>` : '';
+  const b = document.getElementById('admin-btn');
+  b.textContent = isAdmin ? '⚙ Admin ✓' : '⚙ Admin';
+  b.className   = 'admin-btn' + (isAdmin ? ' on' : '');
+}
+
+// ──────────────────────────────────────────────
+//  Phase router
+// ──────────────────────────────────────────────
+function renderPhase() {
+  const app = document.getElementById('app');
+  startTimer();
+  switch (S.phase) {
+    case 'setup':   app.innerHTML = renderSetup();   break;
+    case 'lobby':   app.innerHTML = renderLobby();   break;
+    case 'auction': app.innerHTML = renderAuction(); break;
+    case 'scoring': app.innerHTML = renderScoring(); break;
+    case 'final':   app.innerHTML = renderFinal();   break;
+    default: app.innerHTML = `<p class="muted">Unknown phase.</p>`;
+  }
+}
+
+// ──────────────────────────────────────────────
+//  Helpers
+// ──────────────────────────────────────────────
+function livePot() {
+  return S.golfers.reduce((s,g) => {
+    const v = S.phase === 'auction' ? (g.currentBid||0) : (g.bid||0);
+    return s + v;
+  }, 0);
+}
+function fmt$(n) { return '$' + Number(n).toLocaleString(); }
+function fmtD$(n) { return '$' + Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function sClass(v) { if(!v||v==='--'||v==='E')return 'se'; return v.startsWith('-')?'su':'so'; }
+function parsePos(p) {
+  if(!p||p==='--') return 9999;
+  const c = p.replace(/^T/,'');
+  if(['MC','CUT'].includes(c)) return 9998;
+  if(c==='WD') return 9997; if(c==='DQ') return 9996;
+  return parseInt(c)||9999;
+}
+function parseScore(s) { if(!s||s==='--') return 9999; if(s==='E') return 0; return parseInt(s)||0; }
+
+function fmtCountdown(endTime) {
+  const rem = new Date(endTime).getTime() - Date.now();
+  if (rem <= 0) return 'ENDED';
+  const s = Math.floor(rem/1000), h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sc = s%60;
+  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`;
+  return `${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`;
+}
+
+function startTimer() {
+  if (timerIval) clearInterval(timerIval);
+  if (S.phase === 'auction' && S.auctionEndTime) {
+    timerIval = setInterval(() => {
+      const clk = document.getElementById('clock');
+      if (!clk || !S?.auctionEndTime) return;
+      clk.textContent = fmtCountdown(S.auctionEndTime);
+      const rem = new Date(S.auctionEndTime).getTime() - Date.now();
+      const bar = document.getElementById('timer-bar');
+      if (bar) {
+        bar.classList.toggle('urgent', rem > 0 && rem < 120000);
+        bar.classList.toggle('ended', rem <= 0);
+      }
+    }, 500);
+  }
+}
+
+// ──────────────────────────────────────────────
+//  JOIN
+// ──────────────────────────────────────────────
+async function submitJoin() {
+  const code  = document.getElementById('j-code').value.trim().toUpperCase();
+  const name  = document.getElementById('j-name').value.trim();
+  const email = document.getElementById('j-email').value.trim();
+  const errEl = document.getElementById('join-error');
+  errEl.textContent = '';
+  if (!code||!name||!email) { errEl.textContent='Please fill in all fields.'; return; }
+  if (!email.includes('@'))  { errEl.textContent='Enter a valid email.'; return; }
+  const res  = await fetch('/api/join', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({roomCode:code, name, email}),
+  });
+  const data = await res.json();
+  if (!data.ok) { errEl.textContent = data.error||'Could not join.'; return; }
+  me = data.participant;
+  saveSession();
+  showMain();
+}
+
+// ──────────────────────────────────────────────
+//  SETUP
+// ──────────────────────────────────────────────
+function renderSetup() {
+  if (!isAdmin) return `<div class="card"><div class="ctitle">⏳ Pool Setup In Progress</div>
+    <p class="muted">Your admin is configuring the pool. Once they open registration, you'll be able to join with a room code.</p></div>`;
+  return `
+  <div class="room-code-box">
+    <div class="rclabel">Room Code — share with participants</div>
+    <div class="rc">${esc(S.roomCode)}</div>
+    <div class="rcsub">Participants enter this on the join screen</div>
+    <div style="margin-top:10px;display:flex;gap:7px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-gold btn-sm" onclick="copyCode()">Copy Code</button>
+      <button class="btn btn-out btn-sm" style="color:white;border-color:rgba(255,255,255,0.4)" onclick="regenCode()">Regenerate</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">⚙ Pool Settings</div>
+    <div class="g2">
+      <div class="fg"><label>Pool Name</label><input type="text" id="s-name" value="${esc(S.settings.poolName)}" /></div>
+      <div class="fg"><label>Charity %</label><input type="number" id="s-charity" value="${S.settings.charityPercent}" min="0" max="100" /></div>
+    </div>
+    <div class="g3">
+      <div class="fg"><label>1st Place %</label><input type="number" id="s-p1" value="${S.settings.payoutSplit[0]}" /></div>
+      <div class="fg"><label>2nd Place %</label><input type="number" id="s-p2" value="${S.settings.payoutSplit[1]}" /></div>
+      <div class="fg"><label>3rd Place %</label><input type="number" id="s-p3" value="${S.settings.payoutSplit[2]}" /></div>
+    </div>
+    <div class="g3">
+      <div class="fg"><label>Max Golfers/Person</label><input type="number" id="s-max" value="${S.settings.maxGolfersPerPerson}" min="1" /></div>
+      <div class="fg"><label>Min Bid Increment ($)</label><input type="number" id="s-inc" value="${S.settings.minBidIncrement}" min="1" /></div>
+      <div class="fg"><label>Starting Bid ($)</label><input type="number" id="s-start" value="${S.settings.startingBid}" min="1" /></div>
+    </div>
+    <div class="fg" style="max-width:180px"><label>Anti-Snipe (min)</label><input type="number" id="s-snipe" value="${S.settings.antiSnipeMinutes}" min="0" /></div>
+    <button class="btn btn-green" onclick="saveSettings()">Save Settings</button>
+  </div>
+  <div class="card">
+    <div class="ctitle">🏌️ Golfer Field (${S.golfers.length})</div>
+    <p class="muted">Pre-loaded with ~55 likely Masters 2026 invitees. Modify as needed before opening the lobby.</p>
+    <div class="irow mt3">
+      <div class="fg"><input type="text" id="new-g" placeholder="Add golfer name" /></div>
+      <button class="btn btn-out" onclick="addGolfer()">+ Add</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:7px;margin-top:11px">
+      ${S.golfers.map(g=>`<div style="display:flex;align-items:center;gap:7px;padding:6px 10px;background:#F9FAFB;border-radius:7px;font-size:0.82rem">
+        <span style="color:var(--muted);font-size:0.68rem;min-width:18px">#${g.id}</span>
+        <span style="flex:1">${esc(g.name)}</span>
+        <span onclick="removeGolfer(${g.id})" style="cursor:pointer;color:#9CA3AF;font-size:0.9rem">×</span>
+      </div>`).join('')}
+    </div>
+    <div class="divider"></div>
+    <button class="btn btn-gold" onclick="openLobby()" ${S.participants.length===0?'':''}>→ Open Registration Lobby</button>
+  </div>`;
+}
+
+async function saveSettings() {
+  const p1=+document.getElementById('s-p1').value, p2=+document.getElementById('s-p2').value, p3=+document.getElementById('s-p3').value;
+  if(p1+p2+p3>100){showToast('Payout %s exceed 100%',true);return;}
+  await adminAPI('/api/admin/settings',{
+    poolName:document.getElementById('s-name').value.trim(),
+    charityPercent:+document.getElementById('s-charity').value,
+    payoutSplit:[p1,p2,p3],
+    maxGolfersPerPerson:+document.getElementById('s-max').value,
+    minBidIncrement:+document.getElementById('s-inc').value,
+    startingBid:+document.getElementById('s-start').value,
+    antiSnipeMinutes:+document.getElementById('s-snipe').value,
+  });
+  showToast('Settings saved!');
+}
+async function addGolfer() {
+  const n=document.getElementById('new-g').value.trim(); if(!n)return;
+  const mx=Math.max(0,...S.golfers.map(g=>g.id));
+  await adminAPI('/api/admin/golfers',{golfers:[...S.golfers,{id:mx+1,name:n,ranking:mx+1}]});
+  document.getElementById('new-g').value='';
+}
+async function removeGolfer(id){await adminAPI('/api/admin/golfers',{golfers:S.golfers.filter(g=>g.id!==id)});}
+async function openLobby(){await adminAPI('/api/admin/phase',{phase:'lobby'});showToast('Lobby open — share the room code!');}
+async function copyCode(){try{await navigator.clipboard.writeText(S.roomCode);showToast('Code copied: '+S.roomCode);}catch{showToast('Code: '+S.roomCode);}}
+async function regenCode(){if(!confirm('Generate a new room code?'))return;await adminAPI('/api/admin/roomcode/regenerate',{});showToast('New code generated');}
+
+// ──────────────────────────────────────────────
+//  LOBBY
+// ──────────────────────────────────────────────
+function renderLobby() {
+  return `
+  ${isAdmin ? `<div class="room-code-box">
+    <div class="rclabel">Share this Room Code</div>
+    <div class="rc">${esc(S.roomCode)}</div>
+    <div class="rcsub">Participants visit this URL and enter the code</div>
+    <div style="margin-top:9px"><button class="btn btn-gold btn-sm" onclick="copyCode()">Copy Code</button></div>
+  </div>` : `<div class="card" style="text-align:center;padding:36px">
+    <div style="font-size:2.5rem;margin-bottom:10px">⛳</div>
+    <h2 style="color:var(--green);margin-bottom:7px">You're in!</h2>
+    <p class="muted">Welcome, <strong>${esc(me?.name||'')}</strong>. Waiting for the admin to start the auction…</p>
+  </div>`}
+  <div class="card">
+    <div class="ctitle">👥 Participants (${S.participants.length})</div>
+    ${S.participants.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">
+      ${S.participants.map(p=>`<div style="display:flex;align-items:center;gap:9px;padding:8px 11px;border:1px solid var(--cream2);border-radius:8px;background:${p.id===me?.id?'#F0FBF6':'white'}">
+        <div style="width:30px;height:30px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.78rem;flex-shrink:0">${esc(p.name.charAt(0).toUpperCase())}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:0.85rem">${esc(p.name)}${p.id===me?.id?' <span style="font-size:0.68rem;color:var(--green)">(you)</span>':''}</div>
+          <div style="font-size:0.7rem;color:var(--muted)">${esc(p.email)}</div>
+        </div>
+        ${isAdmin?`<span onclick="removeParticipant('${esc(p.id)}')" style="cursor:pointer;color:#9CA3AF">×</span>`:''}
+      </div>`).join('')}
+    </div>` : '<p class="muted">No participants yet — share the room code!</p>'}
+    ${isAdmin?`<div class="divider"><div></div></div>
+    <div class="aflex">
+      <button class="btn btn-gold" onclick="openM('m-start')" ${S.participants.length<2?'disabled':''}>🔨 Start Live Auction</button>
+      <button class="btn btn-out btn-sm" onclick="adminAPI('/api/admin/phase',{phase:'setup'}).then(()=>showToast('Back to setup'))">← Setup</button>
+    </div>`:''}
+  </div>
+  <div class="card">
+    <div class="ctitle">🏌️ Golfer Field (${S.golfers.length} players)</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px">
+      ${S.golfers.slice(0,32).map(g=>`<div style="padding:5px 9px;background:#F9FAFB;border-radius:7px;font-size:0.8rem"><span style="color:var(--muted);font-size:0.68rem">#${g.id} </span>${esc(g.name)}</div>`).join('')}
+      ${S.golfers.length>32?`<div style="padding:5px 9px;background:#F9FAFB;border-radius:7px;font-size:0.8rem;color:var(--muted)">+${S.golfers.length-32} more…</div>`:''}
+    </div>
+  </div>`;
+}
+
+async function removeParticipant(id){if(!confirm('Remove participant?'))return;await adminAPI('/api/admin/participants/remove',{participantId:id});}
+
+// ──────────────────────────────────────────────
+//  AUCTION
+// ──────────────────────────────────────────────
+function renderAuction() {
+  const ended   = !S.auctionEndTime || Date.now() > new Date(S.auctionEndTime).getTime();
+  const myLeads = S.golfers.filter(g=>g.currentBidderId===me?.id);
+  const myOB    = S.golfers.filter(g=>g.bidderIds?.includes(me?.id)&&g.currentBidderId!==me?.id);
+  const atMax   = myLeads.length >= S.settings.maxGolfersPerPerson;
+  const pot     = S.golfers.reduce((s,g)=>s+(g.currentBid||0),0);
+
+  let visible = [...S.golfers];
+  if (gFilter==='mine')  visible = visible.filter(g=>g.bidderIds?.includes(me?.id));
+  if (gFilter==='hot')   visible = [...visible].filter(g=>g.bidCount>0).sort((a,b)=>b.bidCount-a.bidCount);
+  if (gFilter==='unbid') visible = visible.filter(g=>!g.bidCount);
+
+  return `
+  <div id="timer-bar" class="${ended?'ended':''} ${S.auctionEndTime&&(new Date(S.auctionEndTime)-Date.now())<120000&&!ended?'urgent':''}">
+    <div><div class="tlabel">⏱ Auction ${ended?'Ended':'Closes In'}</div>
+      <div class="tclock" id="clock">${S.auctionEndTime?fmtCountdown(S.auctionEndTime):'--:--'}</div></div>
+    <div><div class="tlabel">Live Pot</div>
+      <div style="font-size:1.4rem;font-weight:700;color:var(--gold-lt)">${fmt$(pot)}</div></div>
+    <div><div class="tlabel">Your Golfers</div>
+      <div style="font-size:1.4rem;font-weight:700;color:var(--gold-lt)">${myLeads.length} / ${S.settings.maxGolfersPerPerson}</div></div>
+    ${isAdmin?`<div style="display:flex;gap:7px;flex-wrap:wrap">
+      <button class="btn btn-gold btn-sm" onclick="openM('m-start')">⏱ Adjust</button>
+      <button class="btn btn-danger btn-sm" onclick="doFinalize()">End Now</button>
+    </div>`:''}
+  </div>
+
+  ${myOB.length?`<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:9px;padding:11px 15px;margin-bottom:13px;display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+    <span>⚠️</span><span style="font-weight:600;color:var(--amber)">Outbid on:</span>
+    ${myOB.map(g=>`<span onclick="openBidModal(${g.id})" style="cursor:pointer;background:#FDE68A;padding:2px 9px;border-radius:20px;font-size:0.8rem;font-weight:600;color:#92400E">${esc(g.name)} — ${fmt$(g.currentBid)} ↑</span>`).join('')}
+  </div>`:''}
+
+  ${atMax&&!ended?`<div style="background:#EEF7EE;border:1px solid #86EFAC;border-radius:9px;padding:9px 14px;margin-bottom:13px;font-size:0.83rem;color:#065F46">
+    ✅ Leading on maximum (${S.settings.maxGolfersPerPerson}) golfers — you need to be outbid on one to bid on another.
+  </div>`:''}
+
+  ${myLeads.length?`<div id="my-strip"><div class="ms-title">Your Golfers (${myLeads.length}/${S.settings.maxGolfersPerPerson})</div>
+    <div class="my-chips">${myLeads.map(g=>`<div class="my-chip"><span class="cn">${esc(g.name)}</span><span class="ca">${fmt$(g.currentBid)}</span></div>`).join('')}</div>
+  </div>`:''}
+
+  <div class="filter-row">
+    <input type="text" id="g-search" placeholder="Search golfers…" oninput="filterSearch()" style="font-size:0.82rem;padding:6px 11px" />
+    ${['all','mine','hot','unbid'].map(f=>`<button class="fbtn ${gFilter===f?'on':''}" onclick="gFilter='${f}';renderPhase()">${{all:'All',mine:'My Bids',hot:'Most Active',unbid:'No Bids'}[f]}</button>`).join('')}
+    <span class="muted" style="font-size:0.75rem">${S.golfers.filter(g=>g.currentBidderId).length}/${S.golfers.length} have bids</span>
+  </div>
+
+  <div class="golfer-grid" id="golfer-grid">
+    ${visible.map(g=>renderCard(g,ended,atMax)).join('')}
+  </div>
+
+  ${isAdmin?`<div id="admin-panel" class="mt3"><div class="apl">⚙ Admin</div>
+    <div class="aflex">
+      <button class="btn btn-green btn-sm" onclick="adminAPI('/api/admin/auction/extend',{minutes:5}).then(()=>showToast('+5 min added'))">+5 min</button>
+      <button class="btn btn-green btn-sm" onclick="adminAPI('/api/admin/auction/extend',{minutes:10}).then(()=>showToast('+10 min added'))">+10 min</button>
+      <button class="btn btn-danger btn-sm" onclick="doFinalize()">🔨 End Now</button>
+    </div>
+  </div>`:''}`;
+}
+
+function renderCard(g, ended, atMax) {
+  const isLead  = me && g.currentBidderId === me.id;
+  const wasOB   = me && g.bidderIds?.includes(me.id) && !isLead;
+  const minBid  = g.currentBid > 0 ? g.currentBid + S.settings.minBidIncrement : S.settings.startingBid;
+  const canBid  = !ended && !isLead && (!atMax || isLead);
+
+  let cls = 'gc' + (isLead?' leading':wasOB?' outbid':ended?' ended':'');
+  let badge = isLead ? `<div class="gc-badge lead">Leading</div>` : wasOB ? `<div class="gc-badge outbid">Outbid</div>` : '';
+  let btnCls = 'gc-bid-btn ', btnTxt = '';
+  if (ended)                 { btnCls+='ended';  btnTxt='Auction Ended'; }
+  else if (isLead)           { btnCls+='lead';   btnTxt='✓ You\'re Leading'; }
+  else if (atMax&&!isLead)   { btnCls+='atmax';  btnTxt=`Max ${S.settings.maxGolfersPerPerson} reached`; }
+  else                       { btnCls+='can';    btnTxt=`Bid ${fmt$(minBid)}+`; }
+
+  return `<div class="${cls}" id="gc-${g.id}">
+    ${badge}
+    <div class="gname">${esc(g.name)}</div>
+    <div class="grank">World #${g.ranking}</div>
+    ${g.currentBid>0
+      ?`<div class="gcur">${fmt$(g.currentBid)}</div><div class="gleader">↑ ${esc(g.currentBidderName||'?')}</div>`
+      :`<div class="gcur" style="color:var(--muted);font-size:0.85rem">No bids</div><div class="gleader">Opens at ${fmt$(S.settings.startingBid)}</div>`}
+    <div class="gbids">${g.bidCount||0} bid${(g.bidCount||0)!==1?'s':''}</div>
+    <button class="${btnCls}" onclick="${canBid?`openBidModal(${g.id})`:''}">${btnTxt}</button>
+  </div>`;
+}
+
+function filterSearch() {
+  const q = (document.getElementById('g-search')?.value||'').toLowerCase();
+  document.querySelectorAll('.gc').forEach(el=>{
+    el.style.display = (el.querySelector('.gname')?.textContent||'').toLowerCase().includes(q)?'':'none';
+  });
+}
+
+function openBidModal(id) {
+  const g = S.golfers.find(g=>g.id===id);
+  if(!g||(!S.auctionEndTime||Date.now()>new Date(S.auctionEndTime).getTime())) return;
+  bidGolfId = id;
+  const minBid = g.currentBid > 0 ? g.currentBid+S.settings.minBidIncrement : S.settings.startingBid;
+  document.getElementById('bid-golfer-name').textContent = g.name;
+  document.getElementById('bid-current-info').textContent = g.currentBid>0
+    ? `Current: ${fmt$(g.currentBid)} by ${g.currentBidderName} (${g.bidCount} bids)`
+    : `No bids yet — opening at ${fmt$(S.settings.startingBid)}`;
+  document.getElementById('bid-amt').value = minBid;
+  document.getElementById('bid-amt').min   = minBid;
+  document.getElementById('bid-error').textContent = '';
+  const inc = S.settings.minBidIncrement;
+  const amounts = [minBid, minBid+inc, minBid+inc*2, minBid+inc*5, minBid+inc*10].filter((v,i,a)=>a.indexOf(v)===i).slice(0,5);
+  document.getElementById('quick-bids').innerHTML = amounts.map(a=>`<button class="qb" onclick="document.getElementById('bid-amt').value=${a}">${fmt$(a)}</button>`).join('');
+  openM('m-bid');
+  setTimeout(()=>document.getElementById('bid-amt')?.focus(), 60);
+}
+
+async function submitBid() {
+  const amt = +document.getElementById('bid-amt').value;
+  const err = document.getElementById('bid-error');
+  err.textContent = '';
+  if(!amt||amt<1){err.textContent='Enter a valid amount.';return;}
+  if(!me){err.textContent='Not logged in.';return;}
+  const res  = await fetch('/api/bid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({participantId:me.id,golferId:bidGolfId,amount:amt})});
+  const data = await res.json();
+  if(!data.ok){err.textContent=data.error||'Bid failed.';return;}
+  closeM('m-bid');
+  showToast(`Bid of ${fmt$(amt)} placed on ${S.golfers.find(g=>g.id===bidGolfId)?.name||'golfer'}!`);
+}
+
+async function doFinalize(){if(!confirm('End auction now and lock in all results?'))return;await adminAPI('/api/admin/auction/finalize',{});showToast('Auction finalized!');}
+async function startAuction(){const dur=+document.getElementById('m-dur').value;await adminAPI('/api/admin/auction/start',{durationMinutes:dur});closeM('m-start');showToast(`Auction started! ${dur} minutes on the clock.`);}
+
+// ──────────────────────────────────────────────
+//  SCORING
+// ──────────────────────────────────────────────
+function renderScoring() {
+  const pot=S.golfers.reduce((s,g)=>s+(g.bid||0),0), charity=pot*S.settings.charityPercent/100, prize=pot-charity;
+  const lastUp=S.lastScoreUpdate?new Date(S.lastScoreUpdate).toLocaleTimeString():'Never';
+  return `
+  <div style="text-align:center;margin-bottom:4px"><h2 style="font-size:1.35rem;color:var(--green)">⛳ Live Leaderboard</h2></div>
+  <div class="muted" style="text-align:center;margin-bottom:18px;font-size:0.8rem">Last updated: ${lastUp}</div>
+  ${isAdmin?`<div id="admin-panel"><div class="apl">⚙ Admin</div><div class="aflex">
+    <button class="btn btn-green btn-sm" id="refresh-btn" onclick="refreshScores()">↻ Refresh Scores</button>
+    <button class="btn btn-out btn-sm" onclick="openScoreModal()">✎ Manual Entry</button>
+    <button class="btn btn-out btn-sm" onclick="adminAPI('/api/admin/phase',{phase:'final'}).then(()=>showToast('Finalized!'))">🏆 Finalize</button>
+  </div></div>`:''}
+  <div class="tabs">
+    <button class="tab ${sTab==='standings'?'on':''}" onclick="sTab='standings';renderPhase()">🏆 Owner Standings</button>
+    <button class="tab ${sTab==='leaderboard'?'on':''}" onclick="sTab='leaderboard';renderPhase()">🏌️ Leaderboard</button>
+  </div>
+  ${sTab==='standings'?renderOwners(prize,charity):renderLB()}`;
+}
+
+function buildOwners() {
+  const map={};
+  for(const g of S.golfers){
+    if(!g.owner)continue;
+    const k=g.ownerId||g.owner;
+    if(!map[k])map[k]={owner:g.owner,ownerId:g.ownerId,golfers:[]};
+    map[k].golfers.push({...g,sd:S.scores[g.name]});
+  }
+  return Object.values(map).map(o=>{
+    const r=o.golfers.filter(g=>g.sd).sort((a,b)=>parsePos(a.sd.position)-parsePos(b.sd.position));
+    const best=r[0];
+    return{...o,best,bestPos:best?parsePos(best.sd.position):9999,bestScore:best?parseScore(best.sd.totalScore):9999};
+  }).sort((a,b)=>a.bestPos-b.bestPos||a.bestScore-b.bestScore);
+}
+
+function renderOwners(prize,charity) {
+  const owners=buildOwners(), medals=['🥇','🥈','🥉'];
+  const isMe=o=>me&&(o.ownerId===me.id||o.owner===me.name);
+  return `<div class="g2" style="margin-bottom:16px">
+    <div class="card"><div class="ctitle">🏆 Projected Payouts</div>
+      ${owners.slice(0,3).map((o,i)=>`<div class="payout-row">
+        <div class="pr-med">${medals[i]}</div>
+        <div class="pr-info"><div class="pr-golfer">${esc(o.best?.name||'?')}</div>
+          <div class="pr-owner">Owner: <strong>${esc(o.owner)}</strong> · ${o.best?.sd?.position||'—'}</div></div>
+        <div class="pr-amt">${fmtD$(prize*S.settings.payoutSplit[i]/100)}</div>
+      </div>`).join('')||'<p class="muted">No scores yet.</p>'}
+      <div class="divider"></div>
+      <div class="fx jb" style="font-size:0.82rem"><span class="muted">Charity</span><span class="tg">${fmtD$(charity)}</span></div>
+    </div>
+    <div class="card"><div class="ctitle">👥 Owner Standings</div>
+      <div class="tw"><table><thead><tr><th>#</th><th>Owner</th><th>Best Golfer</th><th>Score</th><th>Pos</th></tr></thead><tbody>
+        ${owners.length?owners.map((o,i)=>`<tr ${isMe(o)?'style="background:#F0FBF6"':''}>
+          <td style="font-weight:700;color:var(--green)">${i+1}</td>
+          <td><strong>${esc(o.owner)}</strong>${isMe(o)?' <span style="font-size:0.68rem;color:var(--green)">(you)</span>':''}</td>
+          <td>${o.best?esc(o.best.name):'—'}</td>
+          <td class="${o.best?.sd?sClass(o.best.sd.totalScore):''}">${o.best?.sd?.totalScore||'—'}</td>
+          <td style="font-weight:700">${o.best?.sd?.position||'—'}</td>
+        </tr>`).join(''):'<tr><td colspan="5" class="empty">No scores yet</td></tr>'}
+      </tbody></table></div>
+    </div>
+  </div>
+  <div class="card"><div class="ctitle">🏌️ All Assigned Golfers</div>
+    <div class="tw"><table><thead><tr><th>Pos</th><th>Golfer</th><th>Score</th><th>R1</th><th>R2</th><th>R3</th><th>R4</th><th>Owner</th><th>Bid</th></tr></thead><tbody>
+      ${S.golfers.filter(g=>g.owner).map(g=>{const sd=S.scores[g.name];return`<tr>
+        <td style="font-weight:700">${sd?.position||'—'}</td><td><strong>${esc(g.name)}</strong></td>
+        <td class="${sd?sClass(sd.totalScore):''}">${sd?.totalScore||'—'}</td>
+        ${(sd?.rounds||[]).concat(['—','—','—','—']).slice(0,4).map(r=>`<td style="color:var(--muted);font-size:0.75rem">${r}</td>`).join('')}
+        <td><span class="owner-tag">${esc(g.owner)}</span></td><td class="tg">${fmt$(g.bid||0)}</td>
+      </tr>`;}).join('')||'<tr><td colspan="9" class="empty">No assigned golfers</td></tr>'}
+    </tbody></table></div>
+  </div>`;
+}
+
+function renderLB() {
+  const scored=S.golfers.filter(g=>S.scores[g.name]).map(g=>({...g,sd:S.scores[g.name]}))
+    .sort((a,b)=>parsePos(a.sd.position)-parsePos(b.sd.position)||parseScore(a.sd.totalScore)-parseScore(b.sd.totalScore));
+  return `<div class="card"><div class="ctitle">🏌️ Masters Leaderboard</div>
+    ${scored.length?`<div class="tw"><table><thead><tr><th>Pos</th><th>Golfer</th><th>Score</th><th>R1</th><th>R2</th><th>R3</th><th>R4</th><th>Owner</th></tr></thead><tbody>
+      ${scored.map(g=>`<tr>
+        <td style="font-weight:700">${g.sd.position}</td><td><strong>${esc(g.name)}</strong></td>
+        <td class="${sClass(g.sd.totalScore)}">${g.sd.totalScore||'E'}</td>
+        ${(g.sd.rounds||[]).concat(['—','—','—','—']).slice(0,4).map(r=>`<td style="color:var(--muted);font-size:0.75rem">${r}</td>`).join('')}
+        <td>${g.owner?`<span class="owner-tag">${esc(g.owner)}</span>`:'<span class="muted">—</span>'}</td>
+      </tr>`).join('')}
+    </tbody></table></div>`
+    :'<div class="empty"><div style="font-size:2rem;margin-bottom:8px">⛳</div>No scores yet — admin: use Refresh.</div>'}
+  </div>`;
+}
+
+async function refreshScores(){
+  const btn=document.getElementById('refresh-btn');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Refreshing…';}
+  const r=await adminAPI('/api/admin/scores/refresh',{});
+  if(r.ok)showToast(`✓ Scores updated for ${r.count} golfers`);
+  else showToast(r.message||'Could not fetch — try manual entry',true);
+}
+
+function openScoreModal(){
+  document.getElementById('score-rows').innerHTML=
+    `<div style="display:grid;grid-template-columns:1fr 76px 66px;gap:6px;margin-bottom:4px;font-size:0.66rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em"><span>Golfer</span><span>Position</span><span>Score</span></div>`+
+    S.golfers.map(g=>{const sd=S.scores[g.name]||{};return`<div style="display:grid;grid-template-columns:1fr 76px 66px;gap:6px;align-items:center;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid #F3F4F6">
+      <div style="font-size:0.82rem;font-weight:500">${esc(g.name)}</div>
+      <input type="text" data-name="${esc(g.name)}" data-field="position" value="${esc(sd.position||'')}" placeholder="T1" style="padding:4px 7px;font-size:0.76rem" />
+      <input type="text" data-name="${esc(g.name)}" data-field="totalScore" value="${esc(sd.totalScore||'')}" placeholder="-8" style="padding:4px 7px;font-size:0.76rem" />
+    </div>`;}).join('');
+  openM('m-scores');
+}
+
+async function saveManualScores(){
+  const byName={};
+  for(const inp of document.querySelectorAll('#score-rows input')){
+    const v=inp.value.trim(); if(!v)continue;
+    if(!byName[inp.dataset.name])byName[inp.dataset.name]={name:inp.dataset.name};
+    byName[inp.dataset.name][inp.dataset.field]=v;
+  }
+  const scores=Object.values(byName); if(!scores.length){showToast('No scores entered',true);return;}
+  await adminAPI('/api/admin/scores/manual',{scores});
+  closeM('m-scores');
+  showToast(`✓ Saved ${scores.length} scores`);
+}
+
+// ──────────────────────────────────────────────
+//  FINAL
+// ──────────────────────────────────────────────
+function renderFinal(){
+  const pot=S.golfers.reduce((s,g)=>s+(g.bid||0),0), charity=pot*S.settings.charityPercent/100, prize=pot-charity;
+  const owners=buildOwners(), medals=['🥇','🥈','🥉'], winner=owners[0];
+  return `<div class="winner-banner">
+    <h2>🏆 Tournament Complete!</h2>
+    ${winner?`<div class="ws">Congratulations to <strong>${esc(winner.owner)}</strong>, owner of <strong>${esc(winner.best?.name||'')}</strong>!</div>`:''}
+  </div>
+  <div class="g3" style="margin-bottom:16px">
+    <div class="tile"><div class="tl">Total Pot</div><div class="tv">${fmt$(pot)}</div></div>
+    <div class="tile"><div class="tl">Prize Pool</div><div class="tv">${fmt$(prize)}</div></div>
+    <div class="tile"><div class="tl">Charity</div><div class="tv tg">${fmt$(charity)}</div></div>
+  </div>
+  <div class="card"><div class="ctitle">🏆 Final Payouts</div>
+    ${owners.slice(0,3).map((o,i)=>`<div class="payout-row">
+      <div class="pr-med">${medals[i]}</div>
+      <div class="pr-info"><div class="pr-golfer">${esc(o.best?.name||'?')}</div>
+        <div class="pr-owner">Owner: <strong>${esc(o.owner)}</strong> · ${o.best?.sd?.position||'—'} · ${o.best?.sd?.totalScore||'—'}</div></div>
+      <div class="pr-amt">${fmtD$(prize*S.settings.payoutSplit[i]/100)}</div>
+    </div>`).join('')}
+  </div>
+  <div class="card"><div class="ctitle">📋 All Results</div>
+    <div class="tw"><table><thead><tr><th>#</th><th>Owner</th><th>Best Golfer</th><th>Pos</th><th>Score</th><th>Payout</th></tr></thead><tbody>
+      ${owners.map((o,i)=>`<tr>
+        <td style="font-weight:700;color:var(--green)">${i+1}</td><td><strong>${esc(o.owner)}</strong></td>
+        <td>${o.best?esc(o.best.name):'—'}</td>
+        <td style="font-weight:700">${o.best?.sd?.position||'—'}</td>
+        <td class="${o.best?.sd?sClass(o.best.sd.totalScore):''}">${o.best?.sd?.totalScore||'—'}</td>
+        <td class="tg">${i<3?fmtD$(prize*S.settings.payoutSplit[i]/100):'—'}</td>
+      </tr>`).join('')}
+    </tbody></table></div>
+  </div>
+  ${isAdmin?`<div class="card"><div class="ctitle">⚙ Admin</div><div class="aflex">
+    <button class="btn btn-out" onclick="adminAPI('/api/admin/phase',{phase:'scoring'}).then(()=>showToast('Back to scoring'))">← Back to Scoring</button>
+    <button class="btn btn-danger" onclick="resetPool()">⟳ Full Reset</button>
+  </div></div>`:''}`;
+}
+
+// ──────────────────────────────────────────────
+//  Admin helpers
+// ──────────────────────────────────────────────
+function toggleAdmin(){if(isAdmin){isAdmin=false;adminPw='';renderHeader();renderPhase();showToast('Logged out');}else openAdminLogin();}
+function openAdminLogin(){openM('m-login');setTimeout(()=>document.getElementById('m-pw')?.focus(),60);}
+async function doAdminLogin(){
+  const pw=document.getElementById('m-pw').value;
+  const r=await fetch('/api/admin/verify',{headers:{'x-admin-password':pw}});
+  const d=await r.json();
+  if(d.ok){adminPw=pw;isAdmin=true;if(!me)me={id:'__admin__',name:'Admin',email:''};closeM('m-login');document.getElementById('m-pw').value='';showMain();showToast('Admin mode ✓');}
+  else{showToast('Wrong password',true);document.getElementById('m-pw').select();}
+}
+async function adminAPI(ep,data={}){
+  try{const r=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json','x-admin-password':adminPw},body:JSON.stringify(data)});return r.json();}
+  catch{showToast('Network error',true);return{ok:false};}
+}
+async function resetPool(){if(!confirm('⚠️ Reset everything?'))return;if(!confirm('Are you absolutely sure?'))return;await adminAPI('/api/admin/reset',{});showToast('Pool reset.');}
+
+// ──────────────────────────────────────────────
+//  Modal helpers
+// ──────────────────────────────────────────────
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.backdrop').forEach(el=>{
+  el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');});
+});
+
+// ──────────────────────────────────────────────
+//  Toast
+// ──────────────────────────────────────────────
+let toastT;
+function showToast(msg,isErr=false){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className=isErr?'err':'';el.style.display='block';
+  clearTimeout(toastT);toastT=setTimeout(()=>el.style.display='none',3500);
+}
+</script>
+</body>
+</html>

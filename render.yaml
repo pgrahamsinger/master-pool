@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: masters-pool
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/state
+    envVars:
+      - key: NODE_ENV
+        value: production

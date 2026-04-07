@@ -433,8 +433,14 @@ ra('/roomcode/regenerate', (req, res, room) => {
 });
 
 ra('/auction/start', (req, res, room) => {
-  const dur = Number(req.body.durationMinutes) || room.settings.defaultAuctionMinutes || 30;
-  room.auctionEndTime = new Date(Date.now() + dur * 60000).toISOString();
+  if (req.body.endTime) {
+    const t = new Date(req.body.endTime).getTime();
+    if (isNaN(t) || t <= Date.now()) return res.status(400).json({ error: 'End time must be in the future' });
+    room.auctionEndTime = new Date(t).toISOString();
+  } else {
+    const dur = Number(req.body.durationMinutes) || room.settings.defaultAuctionMinutes || 30;
+    room.auctionEndTime = new Date(Date.now() + dur * 60000).toISOString();
+  }
   room.phase = 'auction';
   saveState(); broadcastRoom(room.code);
   res.json({ ok: true, auctionEndTime: room.auctionEndTime });

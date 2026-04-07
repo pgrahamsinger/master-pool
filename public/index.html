@@ -278,16 +278,32 @@
   <div class="modal">
     <h2>🔨 Start Live Auction</h2>
     <p class="muted" style="margin-bottom:16px">All golfers open for bidding simultaneously. Bidding ends when the timer expires or you end it early.</p>
-    <div class="fg"><label>Auction Duration</label>
+    <div class="fg" style="margin-bottom:12px">
+      <label>End Time Mode</label>
+      <div style="display:flex;gap:0;border:1px solid var(--cream2);border-radius:8px;overflow:hidden">
+        <button id="m-mode-dur" onclick="setAucMode('dur')" style="flex:1;padding:7px;border:none;background:var(--green);color:white;font-weight:600;cursor:pointer;font-size:0.82rem">Duration</button>
+        <button id="m-mode-dt"  onclick="setAucMode('dt')"  style="flex:1;padding:7px;border:none;background:white;color:var(--muted);font-weight:600;cursor:pointer;font-size:0.82rem">Specific Date & Time</button>
+      </div>
+    </div>
+    <div id="m-dur-row" class="fg">
+      <label>Auction Duration</label>
       <select id="m-dur">
-        <option value="15">15 minutes</option>
-        <option value="20">20 minutes</option>
-        <option value="30" selected>30 minutes</option>
-        <option value="45">45 minutes</option>
         <option value="60">1 hour</option>
-        <option value="90">1.5 hours</option>
         <option value="120">2 hours</option>
-      </select></div>
+        <option value="180">3 hours</option>
+        <option value="360">6 hours</option>
+        <option value="720">12 hours</option>
+        <option value="1440" selected>1 day</option>
+        <option value="2880">2 days</option>
+        <option value="4320">3 days</option>
+        <option value="10080">7 days</option>
+      </select>
+    </div>
+    <div id="m-dt-row" class="fg" style="display:none">
+      <label>Auction Closes At</label>
+      <input type="datetime-local" id="m-enddt" />
+      <div style="font-size:0.72rem;color:var(--muted);margin-top:3px">Times are in your local timezone</div>
+    </div>
     <p class="muted">Anti-snipe: any bid in the last <strong id="snipe-min">2</strong> minutes extends the timer by that amount.</p>
     <div class="fx g2px mt3">
       <button class="btn btn-gold" onclick="startAuction()">Start Auction</button>
@@ -474,7 +490,7 @@ function renderHeader() {
 //  Phase router
 // ──────────────────────────────────────────────
 function renderParticipantsCard() {
-  if (!isAdmin || !S) return '';
+  if (!S) return '';
   const ps = S.participants || [];
   return `<div class="card" style="margin-bottom:14px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -483,8 +499,8 @@ function renderParticipantsCard() {
     ${ps.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px">
       ${ps.map(p=>`<div style="display:flex;align-items:center;gap:6px;background:#F0FBF4;border:1px solid #86EFAC;border-radius:20px;padding:3px 10px 3px 5px">
         <div style="width:22px;height:22px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.68rem;flex-shrink:0">${esc(p.name.charAt(0).toUpperCase())}</div>
-        <span style="font-size:0.78rem;font-weight:600;color:#065F46">${esc(p.name)}</span>
-        <span onclick="removeParticipant('${esc(p.id)}')" style="cursor:pointer;color:#9CA3AF;font-size:0.9rem;margin-left:1px" title="Remove">×</span>
+        <span style="font-size:0.78rem;font-weight:600;color:#065F46">${esc(p.name)}${p.id===me?.id?' <span style="font-size:0.65rem;color:var(--green)">(you)</span>':''}</span>
+        ${isAdmin?`<span onclick="removeParticipant('${esc(p.id)}')" style="cursor:pointer;color:#9CA3AF;font-size:0.9rem;margin-left:1px" title="Remove">×</span>`:''}
       </div>`).join('')}
     </div>` : `<p class="muted" style="margin:0">No participants yet — share the room code!</p>`}
   </div>`;
@@ -503,8 +519,8 @@ function renderPhase() {
     case 'final':   html = renderFinal();   break;
     default: html = `<p class="muted">Unknown phase.</p>`;
   }
-  // For non-lobby phases, prepend the persistent participants card for admins
-  if (isAdmin && S.phase !== 'lobby') {
+  // For non-lobby phases, prepend the participants card for all users
+  if (S.phase !== 'lobby') {
     app.innerHTML = renderParticipantsCard() + html;
   } else {
     app.innerHTML = html;
@@ -571,8 +587,13 @@ function parseScore(s){ if(!s||s==='--') return 9999; if(s==='E') return 0; retu
 function fmtCountdown(endTime) {
   const rem = new Date(endTime).getTime() - Date.now();
   if (rem <= 0) return 'ENDED';
-  const s=Math.floor(rem/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sc=s%60;
-  if(h>0) return `${h}:${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`;
+  const s = Math.floor(rem / 1000);
+  const days = Math.floor(s / 86400);
+  const h    = Math.floor((s % 86400) / 3600);
+  const m    = Math.floor((s % 3600) / 60);
+  const sc   = s % 60;
+  if (days > 0) return `${days}d ${h}h ${String(m).padStart(2,'0')}m`;
+  if (h > 0)    return `${h}:${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`;
   return `${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`;
 }
 
@@ -917,7 +938,7 @@ function renderLobby() {
     </div>`:'<p class="muted">No participants yet — share the room code!</p>'}
     ${isAdmin?`<div class="divider"><div></div></div>
     <div class="aflex">
-      <button class="btn btn-gold" onclick="openM('m-start')" ${S.participants.length<1?'disabled':''}>🔨 Start Live Auction</button>
+      <button class="btn btn-gold" onclick="openStartModal()" ${S.participants.length<1?'disabled':''}>🔨 Start Live Auction</button>
       <button class="btn btn-out btn-sm" onclick="openSettingsModal()">⚙ Settings</button>
       <button class="btn btn-out btn-sm" onclick="adminAPI('/phase',{phase:'setup'}).then(()=>showToast('Back to setup'))">← Setup</button>
     </div>`:''}
@@ -957,7 +978,7 @@ function renderAuction() {
     <div><div class="tlabel">Your Golfers</div>
       <div style="font-size:1.4rem;font-weight:700;color:var(--gold-lt)">${myLeads.length} / ${S.settings.maxGolfersPerPerson}</div></div>
     ${isAdmin?`<div style="display:flex;gap:7px;flex-wrap:wrap">
-      <button class="btn btn-gold btn-sm" onclick="openM('m-start')">⏱ Adjust</button>
+      <button class="btn btn-gold btn-sm" onclick="openStartModal()">⏱ Adjust</button>
       <button class="btn btn-danger btn-sm" onclick="doFinalize()">End Now</button>
     </div>`:''}
   </div>
@@ -1063,7 +1084,52 @@ async function submitBid() {
 }
 
 async function doFinalize(){ if(!confirm('End auction now and lock in all results?'))return; await adminAPI('/auction/finalize',{}); showToast('Auction finalized!'); }
-async function startAuction(){ const dur=+document.getElementById('m-dur').value; await adminAPI('/auction/start',{durationMinutes:dur}); closeM('m-start'); showToast(`Auction started! ${dur} minutes on the clock.`); }
+function setAucMode(mode) {
+  const isDur = mode === 'dur';
+  document.getElementById('m-dur-row').style.display = isDur ? '' : 'none';
+  document.getElementById('m-dt-row').style.display  = isDur ? 'none' : '';
+  document.getElementById('m-mode-dur').style.background = isDur ? 'var(--green)' : 'white';
+  document.getElementById('m-mode-dur').style.color      = isDur ? 'white' : 'var(--muted)';
+  document.getElementById('m-mode-dt').style.background  = isDur ? 'white' : 'var(--green)';
+  document.getElementById('m-mode-dt').style.color       = isDur ? 'var(--muted)' : 'white';
+}
+
+function openStartModal() {
+  // Pre-fill end datetime if auction is already running
+  if (S && S.auctionEndTime) {
+    const d = new Date(S.auctionEndTime);
+    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    document.getElementById('m-enddt').value = local;
+    setAucMode('dt');
+  } else {
+    // Default: 1 day from now
+    const d = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    document.getElementById('m-enddt').value = local;
+    setAucMode('dur');
+  }
+  openM('m-start');
+}
+
+async function startAuction() {
+  const isDur = document.getElementById('m-dur-row').style.display !== 'none';
+  let body, msg;
+  if (isDur) {
+    const dur = +document.getElementById('m-dur').value;
+    body = { durationMinutes: dur };
+    const h = Math.floor(dur / 60), m = dur % 60;
+    msg = h > 0 ? `Auction started! ${h}h${m > 0 ? ' ' + m + 'm' : ''} on the clock.` : `Auction started! ${m} minutes on the clock.`;
+  } else {
+    const raw = document.getElementById('m-enddt').value;
+    if (!raw) { showToast('Please set an end date/time'); return; }
+    const endTime = new Date(raw).toISOString();
+    body = { endTime };
+    msg = `Auction started! Closes ${new Date(raw).toLocaleString()}.`;
+  }
+  await adminAPI('/auction/start', body);
+  closeM('m-start');
+  showToast(msg);
+}
 
 // ──────────────────────────────────────────────
 //  SCORING

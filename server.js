@@ -124,21 +124,32 @@ function createRoom(settingsOverrides = {}) {
 }
 
 // ─── Global admin password + rooms store ─────────────────────────────────────
-let adminPassword = 'masters2026';
+// ADMIN_PASSWORD and ROOM_CODE can be set as Render environment variables
+// so they survive redeploys (otherwise state.json is wiped on each deploy).
+let adminPassword = process.env.ADMIN_PASSWORD || 'masters2026';
 let rooms         = {};   // { [roomCode]: roomState }
 
 // ─── State persistence ────────────────────────────────────────────────────────
 const STATE_FILE = path.join(__dirname, 'state.json');
 
+// Create the default first room, using ROOM_CODE env var if set so the code
+// stays stable across Render redeploys.
+function makeDefaultRoom() {
+  const r = createRoom();
+  if (process.env.ROOM_CODE) r.code = process.env.ROOM_CODE.trim().toUpperCase();
+  rooms[r.code] = r;
+  return r;
+}
+
 (function loadState() {
   if (!fs.existsSync(STATE_FILE)) {
-    const r = createRoom();
-    rooms[r.code] = r;
+    makeDefaultRoom();
     return;
   }
   try {
     const d = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
-    adminPassword = d.adminPassword || adminPassword;
+    // Env var always wins over stored password so Render env changes take effect
+    adminPassword = process.env.ADMIN_PASSWORD || d.adminPassword || adminPassword;
 
     if (d.rooms && typeof d.rooms === 'object') {
       // New multi-room format
@@ -153,7 +164,9 @@ const STATE_FILE = path.join(__dirname, 'state.json');
     } else if (d.phase !== undefined) {
       // Migrate old single-room format
       const r         = createRoom();
-      r.code          = d.roomCode        || r.code;
+      r.code          = process.env.ROOM_CODE
+                        ? process.env.ROOM_CODE.trim().toUpperCase()
+                        : (d.roomCode || r.code);
       r.phase         = d.phase           || 'setup';
       r.settings      = { ...defaultSettings(), ...d.settings };
       r.participants  = d.participants    || [];
@@ -164,20 +177,16 @@ const STATE_FILE = path.join(__dirname, 'state.json');
       r.auctionEndTime  = d.auctionEndTime  || null;
       r.scores          = d.scores          || {};
       r.lastScoreUpdate = d.lastScoreUpdate || null;
-      // Old format stored adminPassword inside settings
-      if (d.settings && d.settings.adminPassword) adminPassword = d.settings.adminPassword;
+      if (d.settings && d.settings.adminPassword && !process.env.ADMIN_PASSWORD)
+        adminPassword = d.settings.adminPassword;
       rooms[r.code] = r;
     }
 
-    if (!Object.keys(rooms).length) {
-      const r = createRoom();
-      rooms[r.code] = r;
-    }
+    if (!Object.keys(rooms).length) makeDefaultRoom();
     console.log(`✓ Loaded ${Object.keys(rooms).length} room(s)`);
   } catch (e) {
     console.log('⚠ Could not load state – starting fresh');
-    const r = createRoom();
-    rooms[r.code] = r;
+    makeDefaultRoom();
   }
 })();
 

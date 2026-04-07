@@ -243,7 +243,7 @@
     <div class="fg"><label>Room Code</label>
       <input type="text" id="j-code" placeholder="e.g. ABC123"
         style="text-transform:uppercase;letter-spacing:0.12em;font-weight:700;font-size:1.05rem;text-align:center"
-        maxlength="6" oninput="this.value=this.value.toUpperCase()" />
+        maxlength="20" oninput="this.value=this.value.toUpperCase()" />
     </div>
     <div class="fg"><label>Your Name</label>
       <input type="text" id="j-name" placeholder="First Last" /></div>
@@ -361,7 +361,10 @@ let gFilter        = 'all';
 (function loadSession() {
   try {
     const r = sessionStorage.getItem('mp_session');
-    if (r) { const s = JSON.parse(r); me = s.me; myRoomCode = s.roomCode; }
+    if (r) { const s = JSON.parse(r); me = s.me; myRoomCode = s.roomCode; return; }
+    // Migrate old single-key format from before multi-room rewrite
+    const old = sessionStorage.getItem('mp_me');
+    if (old) { me = JSON.parse(old); }
   } catch {}
 })();
 function saveSession() {
@@ -1148,6 +1151,18 @@ function showToast(msg, err=false) {
       const st = await fetch(`/api/room/${myRoomCode}/state`).then(r=>r.json());
       if (st && st.code) { S = st; showMain(); return; }
     } catch {}
+    // Room not found (server restarted/redeployed) — pre-fill join form so
+    // the user can rejoin in one click without re-typing everything.
+    showJoin();
+    const codeEl  = document.getElementById('j-code');
+    const nameEl  = document.getElementById('j-name');
+    const emailEl = document.getElementById('j-email');
+    const errEl   = document.getElementById('join-error');
+    if (codeEl)  codeEl.value  = myRoomCode;
+    if (nameEl)  nameEl.value  = me.name  || '';
+    if (emailEl) emailEl.value = me.email || '';
+    if (errEl)   errEl.textContent = 'The server was restarted — your info is pre-filled below. Just click Join Pool to continue.';
+    return;
   }
   showJoin();
 })();

@@ -9,3 +9,10 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      # Set ROOM_CODE to a fixed value (e.g. MASTERS26) so the room code
+      # survives redeploys. Set ADMIN_PASSWORD to override the default.
+      # You can also set these in the Render dashboard under Environment.
+      - key: ROOM_CODE
+        value: MAST26
+      - key: ADMIN_PASSWORD
+        value: masters2026

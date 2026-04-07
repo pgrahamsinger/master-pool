@@ -618,7 +618,11 @@ function renderSetup() {
   // Format scheduledStartTime for datetime-local input (strip seconds)
   let schedVal = '';
   if(S.settings.scheduledStartTime) {
-    try { schedVal = new Date(S.settings.scheduledStartTime).toISOString().slice(0,16); } catch {}
+    try {
+      const d = new Date(S.settings.scheduledStartTime);
+      // Convert UTC → local time for the datetime-local input
+      schedVal = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+    } catch {}
   }
 
   return `

@@ -337,6 +337,37 @@
   </div>
 </div>
 
+<div id="m-settings" class="backdrop">
+  <div class="modal" style="max-width:520px">
+    <button class="mclose" onclick="closeM('m-settings')">×</button>
+    <h2>⚙ Pool Settings</h2>
+    <div class="fg"><label>Pool Name</label><input type="text" id="ms-name" /></div>
+    <div class="g2">
+      <div class="fg"><label>Charity %</label><input type="number" id="ms-charity" min="0" max="100" /></div>
+      <div class="fg"><label>Entry Fee per Person ($)</label><input type="number" id="ms-fee" min="0" /></div>
+    </div>
+    <div style="font-size:0.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Payout Split (of prize pool after charity)</div>
+    <div class="g3">
+      <div class="fg"><label>1st Place %</label><input type="number" id="ms-p1" min="0" max="100" /></div>
+      <div class="fg"><label>2nd Place %</label><input type="number" id="ms-p2" min="0" max="100" /></div>
+      <div class="fg"><label>3rd Place %</label><input type="number" id="ms-p3" min="0" max="100" /></div>
+    </div>
+    <div class="g3">
+      <div class="fg"><label>Max Golfers/Person</label><input type="number" id="ms-max" min="1" /></div>
+      <div class="fg"><label>Min Bid Increment ($)</label><input type="number" id="ms-inc" min="1" /></div>
+      <div class="fg"><label>Starting Bid ($)</label><input type="number" id="ms-start" min="1" /></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><label>Anti-Snipe (min)</label><input type="number" id="ms-snipe" min="0" /></div>
+      <div class="fg"><label>Default Auction Duration (min)</label><input type="number" id="ms-aucdur" min="1" /></div>
+    </div>
+    <div class="fx g2px mt3">
+      <button class="btn btn-green" onclick="saveSettingsModal()">Save Settings</button>
+      <button class="btn btn-out" onclick="closeM('m-settings')">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -463,6 +494,43 @@ function livePot() {
   if (!S) return 0;
   return S.golfers.reduce((s,g) => s + (S.phase === 'auction' ? (g.currentBid||0) : (g.bid||0)), 0);
 }
+
+function renderPotBreakdown() {
+  const pot     = livePot();
+  const charity = pot * S.settings.charityPercent / 100;
+  const prize   = pot - charity;
+  const sp      = S.settings.payoutSplit || [60, 25, 15];
+  if (pot === 0) return '';
+  return `
+  <div style="background:white;border:1px solid var(--cream2);border-radius:12px;padding:16px 20px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted)">💰 Live Pot Breakdown</div>
+      <div style="font-size:1.35rem;font-weight:700;color:var(--green)">${fmt$(pot)} total</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:12px">
+      <div style="text-align:center;background:#FEF9EE;border-radius:9px;padding:10px 6px">
+        <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--amber);font-weight:700;margin-bottom:3px">🥇 1st Place</div>
+        <div style="font-size:1.05rem;font-weight:700;color:var(--text)">${fmt$(Math.floor(prize*sp[0]/100))}</div>
+        <div style="font-size:0.68rem;color:var(--muted)">${sp[0]}% of prize</div>
+      </div>
+      <div style="text-align:center;background:#F5F5F5;border-radius:9px;padding:10px 6px">
+        <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);font-weight:700;margin-bottom:3px">🥈 2nd Place</div>
+        <div style="font-size:1.05rem;font-weight:700;color:var(--text)">${fmt$(Math.floor(prize*sp[1]/100))}</div>
+        <div style="font-size:0.68rem;color:var(--muted)">${sp[1]}% of prize</div>
+      </div>
+      <div style="text-align:center;background:#FDF4EC;border-radius:9px;padding:10px 6px">
+        <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;color:#92400E;font-weight:700;margin-bottom:3px">🥉 3rd Place</div>
+        <div style="font-size:1.05rem;font-weight:700;color:var(--text)">${fmt$(Math.floor(prize*sp[2]/100))}</div>
+        <div style="font-size:0.68rem;color:var(--muted)">${sp[2]}% of prize</div>
+      </div>
+      <div style="text-align:center;background:#F0FBF4;border-radius:9px;padding:10px 6px">
+        <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;color:#065F46;font-weight:700;margin-bottom:3px">♥️ Charity</div>
+        <div style="font-size:1.05rem;font-weight:700;color:#059669">${fmt$(Math.floor(charity))}</div>
+        <div style="font-size:0.68rem;color:var(--muted)">${S.settings.charityPercent}% of pot</div>
+      </div>
+    </div>
+  </div>`;
+}
 function fmt$(n)  { return '$' + Number(n).toLocaleString(); }
 function fmtD$(n) { return '$' + Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function esc(s)   { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -561,23 +629,43 @@ function renderRoomsDashboard() {
     </div>
     <p class="muted" style="margin-bottom:4px">Click a room to manage it. Each room has its own participants, settings, and auction.</p>
     <div class="rooms-grid">
-      ${adminRooms.map(r=>`
+      ${adminRooms.map(r=>{
+        const prize = r.pot * (1 - r.charityPercent/100);
+        const charity = r.pot * r.charityPercent/100;
+        const sp = r.payoutSplit || [60,25,15];
+        return `
         <div class="room-card" onclick="selectAdminRoom('${esc(r.code)}')">
           <div class="rc-name">${esc(r.poolName)}</div>
           <div class="rc-code">${esc(r.code)}</div>
           <div class="rc-meta">
             <span class="rc-phase ${r.phase}">${phaseLabel(r.phase)}</span>
-            <span>👥 ${r.participants} participants</span>
+            <span>👥 ${r.participantCount} participant${r.participantCount!==1?'s':''}</span>
             ${r.entryFee>0?`<span>💵 $${r.entryFee}/person</span>`:''}
             ${r.scheduledStartTime?`<span>⏰ Scheduled</span>`:''}
             ${r.auctionEndTime&&r.phase==='auction'?`<span style="color:#059669;font-weight:700">🟢 Live</span>`:''}
           </div>
+          ${r.pot>0?`<div style="margin-top:10px;background:#F9FAFB;border-radius:8px;padding:9px 11px;font-size:0.76rem">
+            <div style="display:flex;justify-content:space-between;font-weight:700;margin-bottom:5px">
+              <span>💰 Total Pot</span><span style="color:var(--green)">${fmt$(r.pot)}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;color:var(--muted)">
+              <div style="display:flex;justify-content:space-between"><span>🥇 1st (${sp[0]}%)</span><span>${fmt$(prize*sp[0]/100)}</span></div>
+              <div style="display:flex;justify-content:space-between"><span>🥈 2nd (${sp[1]}%)</span><span>${fmt$(prize*sp[1]/100)}</span></div>
+              <div style="display:flex;justify-content:space-between"><span>🥉 3rd (${sp[2]}%)</span><span>${fmt$(prize*sp[2]/100)}</span></div>
+              <div style="display:flex;justify-content:space-between"><span>♥️ Charity (${r.charityPercent}%)</span><span>${fmt$(charity)}</span></div>
+            </div>
+          </div>`:''}
+          ${r.participants&&r.participants.length?`<div style="margin-top:10px">
+            <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:5px">Participants</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px">
+              ${r.participants.map(p=>`<span style="background:#F0FBF4;border:1px solid #86EFAC;border-radius:12px;padding:2px 8px;font-size:0.72rem;font-weight:600;color:#065F46">${esc(p.name)}</span>`).join('')}
+            </div>
+          </div>`:''}
           <div style="margin-top:12px;display:flex;gap:7px">
             <button class="btn btn-green btn-sm" onclick="event.stopPropagation();selectAdminRoom('${esc(r.code)}')">Manage →</button>
             <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteRoom('${esc(r.code)}')">Delete</button>
           </div>
-        </div>
-      `).join('')}
+        </div>`}).join('')}
       <div class="room-card add-card" onclick="openM('m-newroom')">+ Create New Room</div>
     </div>`;
 }
@@ -716,6 +804,41 @@ async function saveSettings() {
   showToast('Settings saved!');
 }
 
+function openSettingsModal() {
+  if (!S) return;
+  document.getElementById('ms-name').value    = S.settings.poolName;
+  document.getElementById('ms-charity').value = S.settings.charityPercent;
+  document.getElementById('ms-fee').value     = S.settings.entryFee || 0;
+  document.getElementById('ms-p1').value      = S.settings.payoutSplit[0];
+  document.getElementById('ms-p2').value      = S.settings.payoutSplit[1];
+  document.getElementById('ms-p3').value      = S.settings.payoutSplit[2];
+  document.getElementById('ms-max').value     = S.settings.maxGolfersPerPerson;
+  document.getElementById('ms-inc').value     = S.settings.minBidIncrement;
+  document.getElementById('ms-start').value   = S.settings.startingBid;
+  document.getElementById('ms-snipe').value   = S.settings.antiSnipeMinutes;
+  document.getElementById('ms-aucdur').value  = S.settings.defaultAuctionMinutes || 30;
+  openM('m-settings');
+}
+
+async function saveSettingsModal() {
+  const p1=+document.getElementById('ms-p1').value;
+  const p2=+document.getElementById('ms-p2').value;
+  const p3=+document.getElementById('ms-p3').value;
+  if(p1+p2+p3 > 100){ showToast('Payout %s exceed 100%', true); return; }
+  const d = await adminAPI('/settings', {
+    poolName:              document.getElementById('ms-name').value.trim(),
+    charityPercent:        +document.getElementById('ms-charity').value,
+    entryFee:              +document.getElementById('ms-fee').value,
+    payoutSplit:           [p1, p2, p3],
+    maxGolfersPerPerson:   +document.getElementById('ms-max').value,
+    minBidIncrement:       +document.getElementById('ms-inc').value,
+    startingBid:           +document.getElementById('ms-start').value,
+    antiSnipeMinutes:      +document.getElementById('ms-snipe').value,
+    defaultAuctionMinutes: +document.getElementById('ms-aucdur').value,
+  });
+  if(d && d.ok !== false){ closeM('m-settings'); showToast('Settings saved!'); }
+}
+
 async function changeAdminPassword() {
   const np = document.getElementById('pw-new').value;
   const cp = document.getElementById('pw-confirm').value;
@@ -771,6 +894,7 @@ function renderLobby() {
     ${isAdmin?`<div class="divider"><div></div></div>
     <div class="aflex">
       <button class="btn btn-gold" onclick="openM('m-start')" ${S.participants.length<1?'disabled':''}>🔨 Start Live Auction</button>
+      <button class="btn btn-out btn-sm" onclick="openSettingsModal()">⚙ Settings</button>
       <button class="btn btn-out btn-sm" onclick="adminAPI('/phase',{phase:'setup'}).then(()=>showToast('Back to setup'))">← Setup</button>
     </div>`:''}
   </div>
@@ -814,6 +938,8 @@ function renderAuction() {
     </div>`:''}
   </div>
 
+  ${renderPotBreakdown()}
+
   ${myOB.length?`<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:9px;padding:11px 15px;margin-bottom:13px;display:flex;align-items:center;gap:9px;flex-wrap:wrap">
     <span>⚠️</span><span style="font-weight:600;color:var(--amber)">Outbid on:</span>
     ${myOB.map(g=>`<span onclick="openBidModal(${g.id})" style="cursor:pointer;background:#FDE68A;padding:2px 9px;border-radius:20px;font-size:0.8rem;font-weight:600;color:#92400E">${esc(g.name)} — ${fmt$(g.currentBid)} ↑</span>`).join('')}
@@ -841,6 +967,7 @@ function renderAuction() {
     <div class="aflex">
       <button class="btn btn-green btn-sm" onclick="adminAPI('/auction/extend',{minutes:5}).then(()=>showToast('+5 min added'))">+5 min</button>
       <button class="btn btn-green btn-sm" onclick="adminAPI('/auction/extend',{minutes:10}).then(()=>showToast('+10 min added'))">+10 min</button>
+      <button class="btn btn-out btn-sm" onclick="openSettingsModal()">⚙ Settings</button>
       <button class="btn btn-danger btn-sm" onclick="doFinalize()">🔨 End Now</button>
     </div>
   </div>`:''}`;
@@ -923,9 +1050,11 @@ function renderScoring() {
   return `
   <div style="text-align:center;margin-bottom:4px"><h2 style="font-size:1.35rem;color:var(--green)">⛳ Live Leaderboard</h2></div>
   <div class="muted" style="text-align:center;margin-bottom:18px;font-size:0.8rem">Last updated: ${lastUp}</div>
+  ${renderPotBreakdown()}
   ${isAdmin?`<div id="admin-panel"><div class="apl">⚙ Admin</div><div class="aflex">
     <button class="btn btn-green btn-sm" id="refresh-btn" onclick="refreshScores()">↻ Refresh Scores</button>
     <button class="btn btn-out btn-sm" onclick="openScoreModal()">✎ Manual Entry</button>
+    <button class="btn btn-out btn-sm" onclick="openSettingsModal()">⚙ Settings</button>
     <button class="btn btn-out btn-sm" onclick="adminAPI('/phase',{phase:'final'}).then(()=>showToast('Finalized!'))">🏆 Finalize</button>
   </div></div>`:''}
   <div class="tabs">

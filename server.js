@@ -262,11 +262,15 @@ app.get('/api/admin/rooms', requireAdmin, (_req, res) =>
       code:               r.code,
       poolName:           r.settings.poolName,
       phase:              r.phase,
-      participants:       r.participants.length,
+      participantCount:   r.participants.length,
+      participants:       r.participants.map(p => ({ name: p.name, email: p.email })),
       createdAt:          r.createdAt,
       auctionEndTime:     r.auctionEndTime,
       scheduledStartTime: r.settings.scheduledStartTime,
       entryFee:           r.settings.entryFee,
+      pot:                r.golfers.reduce((s, g) => s + (r.phase === 'auction' ? (g.currentBid || 0) : (g.bid || 0)), 0),
+      charityPercent:     r.settings.charityPercent,
+      payoutSplit:        r.settings.payoutSplit,
     })),
   }));
 

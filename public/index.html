@@ -398,6 +398,7 @@
 
 <div id="toast"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
 // ──────────────────────────────────────────────
@@ -518,6 +519,38 @@ function renderParticipantsCard() {
   </div>`;
 }
 
+function renderRulesCard() {
+  if (!S) return '';
+  return `<div class="card" style="margin-top:14px">
+    <div class="ctitle">📋 Pool Rules & Payment</div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+      <div style="flex:1;min-width:220px">
+        <p style="margin:0 0 10px;font-size:0.88rem;line-height:1.6">
+          <strong>🏌️ Auction:</strong> All golfers are open for bidding simultaneously.
+          The highest bidder at close wins that golfer.
+        </p>
+        <p style="margin:0 0 10px;font-size:0.88rem;line-height:1.6">
+          <strong>💰 Payouts:</strong> The pot is split ${S.settings.charityPercent}% to charity and ${100-S.settings.charityPercent}% to prize money (${S.settings.payoutSplit[0]}% / ${S.settings.payoutSplit[1]}% / ${S.settings.payoutSplit[2]}% for 1st / 2nd / 3rd).
+          Any cents left over from rounding go to charity.
+        </p>
+        <p style="margin:0 0 10px;font-size:0.88rem;line-height:1.6">
+          <strong>💳 Payment:</strong> All entry fees and auction bids must be paid via
+          Venmo to <strong>@Graham-Singer</strong> by <strong>7:00 AM Thursday</strong>.
+          Failure to pay forfeits your golfers to the next-highest bidder.
+        </p>
+        <p style="margin:0;font-size:0.88rem;line-height:1.6">
+          <strong>🔨 Anti-snipe:</strong> Any bid placed in the final ${S.settings.antiSnipeMinutes} minute${S.settings.antiSnipeMinutes!==1?'s':''} extends the timer by that amount.
+        </p>
+      </div>
+      <div style="text-align:center;flex-shrink:0">
+        <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px">Pay via Venmo</div>
+        <div id="venmo-qr-canvas" style="background:white;padding:8px;border-radius:10px;border:2px solid var(--cream2);display:inline-block"></div>
+        <div style="margin-top:6px;font-size:0.78rem;font-weight:700;color:var(--green)">@Graham-Singer</div>
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderPhase() {
   if (!S) return;
   const app = document.getElementById('app');
@@ -531,11 +564,20 @@ function renderPhase() {
     case 'final':   html = renderFinal();   break;
     default: html = `<p class="muted">Unknown phase.</p>`;
   }
-  // For non-lobby phases, prepend the participants card for all users
+  // For non-lobby phases, prepend participants card; append rules card for all phases
   if (S.phase !== 'lobby') {
-    app.innerHTML = renderParticipantsCard() + html;
+    app.innerHTML = renderParticipantsCard() + html + renderRulesCard();
   } else {
-    app.innerHTML = html;
+    app.innerHTML = html + renderRulesCard();
+  }
+  // Render Venmo QR code into the placeholder div (after DOM is set)
+  const qrEl = document.getElementById('venmo-qr-canvas');
+  if (qrEl && !qrEl.hasChildNodes() && typeof QRCode !== 'undefined') {
+    new QRCode(qrEl, {
+      text: 'https://venmo.com/Graham-Singer',
+      width: 140, height: 140,
+      colorDark: '#1a3a2a', colorLight: '#ffffff',
+    });
   }
 }
 
@@ -1226,6 +1268,138 @@ async function startAuction() {
 // ──────────────────────────────────────────────
 //  SCORING
 // ──────────────────────────────────────────────
+function renderPaymentSummary() {
+  const fee      = S.settings.entryFee || 0;
+  const assigned = S.golfers.filter(g => g.owner && g.bid);
+  if (!assigned.length) return '';
+
+  // Group golfers by owner
+  const ownerMap = {};
+  for (const g of assigned) {
+    const key = g.ownerId || g.owner;
+    if (!ownerMap[key]) ownerMap[key] = { name: g.owner, ownerId: g.ownerId, golfers: [] };
+    ownerMap[key].golfers.push(g);
+  }
+  // Also include participants who owe only an entry fee (no golfers won)
+  if (fee > 0) {
+    for (const p of (S.participants || [])) {
+      if (!ownerMap[p.id]) ownerMap[p.id] = { name: p.name, ownerId: p.id, golfers: [] };
+    }
+  }
+
+  const owners = Object.values(ownerMap).sort((a, b) => {
+    const tA = a.golfers.reduce((s, g) => s + g.bid, 0) + fee;
+    const tB = b.golfers.reduce((s, g) => s + g.bid, 0) + fee;
+    return tB - tA;
+  });
+
+  return `<div class="card" style="margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div class="ctitle" style="margin-bottom:0">💵 What Everyone Owes</div>
+      <button class="btn btn-out btn-sm" onclick="copyPaymentSummary()">📋 Copy Summary</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px">
+      ${owners.map(o => {
+        const bidTotal = o.golfers.reduce((s, g) => s + g.bid, 0);
+        const total    = bidTotal + fee;
+        const isMe     = me && (o.ownerId === me.id || o.name === me.name);
+        return `<div style="border:2px solid ${isMe ? 'var(--green)' : 'var(--cream2)'};border-radius:10px;padding:13px;background:${isMe ? '#F0FBF4' : 'white'}">
+          <div style="font-weight:700;font-size:0.92rem;margin-bottom:9px;display:flex;align-items:center;gap:6px">
+            <span style="color:var(--green)">${esc(o.name)}</span>
+            ${isMe ? `<span style="font-size:0.65rem;background:var(--green);color:white;padding:1px 7px;border-radius:10px;font-weight:600">You</span>` : ''}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;font-size:0.82rem">
+            ${o.golfers.length ? o.golfers.sort((a,b) => b.bid - a.bid).map(g => `
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span>⛳ ${esc(g.name)}</span>
+                <span style="font-weight:600;color:var(--text)">${fmt$(g.bid)}</span>
+              </div>`).join('') : `<div style="color:var(--muted);font-style:italic">No golfers won</div>`}
+            ${fee > 0 ? `<div style="display:flex;justify-content:space-between;align-items:center;color:var(--muted)">
+              <span>📋 Entry fee</span><span>${fmt$(fee)}</span>
+            </div>` : ''}
+          </div>
+          <div style="border-top:1px solid ${isMe ? '#86EFAC' : 'var(--cream2)'};margin-top:9px;padding-top:8px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:0.72rem;color:var(--muted)">Due by 7am Thu · Venmo @Graham-Singer</span>
+          </div>
+          <div style="text-align:right;margin-top:3px">
+            <span style="font-size:1.15rem;font-weight:700;color:var(--green)">${fmt$(total)}</span>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function copyPaymentSummary() {
+  const fee      = S.settings.entryFee || 0;
+  const assigned = S.golfers.filter(g => g.owner && g.bid);
+  const ownerMap = {};
+  for (const g of assigned) {
+    const key = g.ownerId || g.owner;
+    if (!ownerMap[key]) ownerMap[key] = { name: g.owner, golfers: [] };
+    ownerMap[key].golfers.push(g);
+  }
+  if (fee > 0) {
+    for (const p of (S.participants || [])) {
+      if (!ownerMap[p.id]) ownerMap[p.id] = { name: p.name, golfers: [] };
+    }
+  }
+  const owners = Object.values(ownerMap).sort((a,b) =>
+    (b.golfers.reduce((s,g)=>s+g.bid,0)+fee) - (a.golfers.reduce((s,g)=>s+g.bid,0)+fee));
+
+  let txt = `${S.settings.poolName} — Payment Summary\n`;
+  txt += `Venmo @Graham-Singer by 7:00 AM Thursday\n`;
+  txt += '─'.repeat(42) + '\n';
+  for (const o of owners) {
+    const total = o.golfers.reduce((s,g)=>s+g.bid,0) + fee;
+    txt += `\n${o.name}\n`;
+    for (const g of o.golfers.sort((a,b)=>b.bid-a.bid)) txt += `  ⛳ ${g.name}: $${g.bid}\n`;
+    if (fee > 0) txt += `  Entry fee: $${fee}\n`;
+    txt += `  ► TOTAL DUE: $${total}\n`;
+  }
+  navigator.clipboard.writeText(txt)
+    .then(() => showToast('Payment summary copied to clipboard!'))
+    .catch(() => showToast('Could not copy — try selecting the text manually', true));
+}
+
+function renderPaymentManagement() {
+  const assigned = S.golfers.filter(g => g.owner);
+  if (!assigned.length) return '';
+  return `<div class="card" style="margin-top:14px">
+    <div class="ctitle">💳 Payment Management</div>
+    <p class="muted" style="margin-bottom:10px;font-size:0.82rem">
+      If a participant hasn't paid by 7am Thursday, click "→ Next Bidder" to forfeit their golfer(s) to the next-highest bidder on record.
+    </p>
+    <div class="tw"><table><thead><tr>
+      <th>Golfer</th><th>Current Owner</th><th>Winning Bid</th><th>Next Bidder</th><th></th>
+    </tr></thead><tbody>
+      ${assigned.map(g => {
+        const history = g.bidHistory || [];
+        const currentOwnerId = g.ownerId || g.currentBidderId;
+        const best = {};
+        for (const b of history) {
+          if (b.bidderId === currentOwnerId) continue;
+          if (!best[b.bidderId] || b.amount > best[b.bidderId].amount) best[b.bidderId] = b;
+        }
+        const next = Object.values(best).sort((a,b) => b.amount - a.amount)[0];
+        return `<tr>
+          <td><strong>${esc(g.name)}</strong></td>
+          <td><span class="owner-tag">${esc(g.owner)}</span></td>
+          <td class="tg">${fmt$(g.bid || 0)}</td>
+          <td style="color:var(--muted);font-size:0.82rem">${next ? `${esc(next.name)} — ${fmt$(next.amount)}` : '<em>No other bidders</em>'}</td>
+          <td>${next ? `<button class="btn btn-danger btn-sm" onclick="awardNextBidder(${g.id},'${esc(g.name)}','${esc(next.name)}',${next.amount})">→ Next Bidder</button>` : ''}</td>
+        </tr>`;
+      }).join('')}
+    </tbody></table></div>
+  </div>`;
+}
+
+async function awardNextBidder(golferId, golferName, nextName, nextAmt) {
+  if (!confirm(`Forfeit ${golferName} from current owner and award to ${nextName} (${fmt$(nextAmt)})?`)) return;
+  const d = await adminAPI(`/golfer/${golferId}/award-next`, {});
+  if (d && d.ok) showToast(`${golferName} awarded to ${nextName} (${fmt$(nextAmt)})`);
+}
+
 function renderScoring() {
   const pot=S.golfers.reduce((s,g)=>s+(g.bid||0),0);
   const {p1,p2,p3,charity,prize}=calcPayouts(pot,S.settings);
@@ -1234,6 +1408,7 @@ function renderScoring() {
   <div style="text-align:center;margin-bottom:4px"><h2 style="font-size:1.35rem;color:var(--green)">⛳ Live Leaderboard</h2></div>
   <div class="muted" style="text-align:center;margin-bottom:18px;font-size:0.8rem">Last updated: ${lastUp}</div>
   ${renderPotBreakdown()}
+  ${renderPaymentSummary()}
   ${isAdmin?`<div id="admin-panel"><div class="apl">⚙ Admin</div><div class="aflex">
     <button class="btn btn-green btn-sm" id="refresh-btn" onclick="refreshScores()">↻ Refresh Scores</button>
     <button class="btn btn-out btn-sm" onclick="openScoreModal()">✎ Manual Entry</button>
@@ -1298,7 +1473,8 @@ function renderOwners(p1,p2,p3,charity) {
         <td><span class="owner-tag">${esc(g.owner)}</span></td><td class="tg">${fmt$(g.bid||0)}</td>
       </tr>`;}).join('')||'<tr><td colspan="9" class="empty">No assigned golfers</td></tr>'}
     </tbody></table></div>
-  </div>`;
+  </div>
+  ${isAdmin ? renderPaymentManagement() : ''}`;
 }
 
 function renderLB() {
@@ -1366,6 +1542,7 @@ function renderFinal(){
     <div class="tile"><div class="tl">Prize Pool</div><div class="tv">${fmt$(prize)}</div></div>
     <div class="tile"><div class="tl">Charity</div><div class="tv tg">${fmt$(charity)}</div></div>
   </div>
+  ${renderPaymentSummary()}
   <div class="card"><div class="ctitle">🏆 Final Payouts</div>
     ${owners.slice(0,3).map((o,i)=>`<div class="payout-row">
       <div class="pr-med">${medals[i]}</div>
@@ -1385,6 +1562,7 @@ function renderFinal(){
       </tr>`).join('')}
     </tbody></table></div>
   </div>
+  ${isAdmin ? renderPaymentManagement() : ''}
   ${isAdmin?`<div class="card"><div class="ctitle">⚙ Admin</div><div class="aflex">
     <button class="btn btn-out" onclick="adminAPI('/phase',{phase:'scoring'}).then(()=>showToast('Back to scoring'))">← Back to Scoring</button>
     <button class="btn btn-danger" onclick="resetPool()">⟳ Full Reset</button>

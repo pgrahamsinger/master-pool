@@ -28,6 +28,7 @@ function newGolfer(g) {
     owner: null, ownerId: null, bid: null,
     currentBid: 0, currentBidderId: null, currentBidderName: null,
     bidCount: 0, bidderIds: [],
+    bidHistory: [],   // [{bidderId, name, amount, ts}] — all bids chronologically
   };
 }
 
@@ -169,7 +170,7 @@ function makeDefaultRoom() {
         room.settings = { ...defaultSettings(), ...room.settings };
         room.golfers  = (room.golfers || []).map(g => ({
           currentBid: 0, currentBidderId: null, currentBidderName: null,
-          bidCount: 0, bidderIds: [], owner: null, ownerId: null, bid: null, ...g,
+          bidCount: 0, bidderIds: [], bidHistory: [], owner: null, ownerId: null, bid: null, ...g,
         }));
         rooms[code] = room;
       }
@@ -398,6 +399,8 @@ app.post('/api/room/:code/bid', (req, res) => {
   golfer.currentBidderName = participant.name;
   golfer.bidCount          = (golfer.bidCount || 0) + 1;
   if (!golfer.bidderIds.includes(participantId)) golfer.bidderIds.push(participantId);
+  if (!golfer.bidHistory) golfer.bidHistory = [];
+  golfer.bidHistory.push({ bidderId: participantId, name: participant.name, amount: Number(amount), ts: new Date().toISOString() });
 
   saveState();
   broadcastRoom(room.code);
@@ -479,6 +482,38 @@ ra('/auction/finalize', (req, res, room) => {
   finalizeAuction(room);
   saveState(); broadcastRoom(room.code);
   res.json({ ok: true });
+});
+
+// Award a golfer to the next-highest bidder (non-payer forfeiture)
+ra('/golfer/:golferId/award-next', (req, res, room) => {
+  const golferId = Number(req.params.golferId);
+  const g = room.golfers.find(g => g.id === golferId);
+  if (!g) return res.status(404).json({ error: 'Golfer not found' });
+
+  const history = g.bidHistory || [];
+  const currentOwnerId = g.ownerId || g.currentBidderId;
+
+  // Build highest bid per unique bidder, excluding current owner
+  const best = {};
+  for (const b of history) {
+    if (b.bidderId === currentOwnerId) continue;
+    if (!best[b.bidderId] || b.amount > best[b.bidderId].amount) best[b.bidderId] = b;
+  }
+  const ranked = Object.values(best).sort((a, b) => b.amount - a.amount);
+  if (!ranked.length) return res.status(400).json({ error: 'No other bidders on record for this golfer.' });
+
+  const next = ranked[0];
+  // Update finalized fields (scoring/final phase) or live auction fields
+  g.owner   = next.name;
+  g.ownerId = next.bidderId;
+  g.bid     = next.amount;
+  // Also update live auction fields in case they're still relevant
+  g.currentBid        = next.amount;
+  g.currentBidderId   = next.bidderId;
+  g.currentBidderName = next.name;
+
+  saveState(); broadcastRoom(room.code);
+  res.json({ ok: true, newOwner: next.name, amount: next.amount });
 });
 
 ra('/auction/clearbid', (req, res, room) => {

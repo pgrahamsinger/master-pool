@@ -373,9 +373,21 @@
       <div class="fg"><label>Min Bid Increment ($)</label><input type="number" id="ms-inc" min="1" /></div>
       <div class="fg"><label>Starting Bid ($)</label><input type="number" id="ms-start" min="1" /></div>
     </div>
-    <div class="g2">
-      <div class="fg"><label>Anti-Snipe (min)</label><input type="number" id="ms-snipe" min="0" /></div>
-      <div class="fg"><label>Default Auction Duration (min)</label><input type="number" id="ms-aucdur" min="1" /></div>
+    <div class="fg" style="margin-bottom:2px"><label>Anti-Snipe (min)</label><input type="number" id="ms-snipe" min="0" /></div>
+    <div class="fg">
+      <label>Auction Length</label>
+      <div style="display:flex;gap:0;border:1px solid var(--cream2);border-radius:8px;overflow:hidden;margin-bottom:8px">
+        <button id="ms-mode-dur" onclick="setMsAucMode('dur')" style="flex:1;padding:7px;border:none;background:var(--green);color:white;font-weight:600;cursor:pointer;font-size:0.82rem">Duration</button>
+        <button id="ms-mode-dt"  onclick="setMsAucMode('dt')"  style="flex:1;padding:7px;border:none;background:white;color:var(--muted);font-weight:600;cursor:pointer;font-size:0.82rem">Specific End Date & Time</button>
+      </div>
+      <div id="ms-dur-row">
+        <input type="number" id="ms-aucdur" min="1" />
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:3px">Minutes (e.g. 1440 = 1 day, 4320 = 3 days)</div>
+      </div>
+      <div id="ms-dt-row" style="display:none">
+        <input type="datetime-local" id="ms-auctionend" />
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:3px">Times are in your local timezone</div>
+      </div>
     </div>
     <div class="fx g2px mt3">
       <button class="btn btn-green" onclick="saveSettingsModal()">Save Settings</button>
@@ -756,8 +768,16 @@ function renderSetup() {
   if(S.settings.scheduledStartTime) {
     try {
       const d = new Date(S.settings.scheduledStartTime);
-      // Convert UTC → local time for the datetime-local input
       schedVal = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+    } catch {}
+  }
+  // Format scheduledAuctionEndTime
+  let auctionEndVal = '';
+  const hasEndTime = !!S.settings.scheduledAuctionEndTime;
+  if(S.settings.scheduledAuctionEndTime) {
+    try {
+      const d = new Date(S.settings.scheduledAuctionEndTime);
+      auctionEndVal = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0,16);
     } catch {}
   }
 
@@ -788,15 +808,31 @@ function renderSetup() {
       <div class="fg"><label>Min Bid Increment ($)</label><input type="number" id="s-inc" value="${S.settings.minBidIncrement}" min="1" /></div>
       <div class="fg"><label>Starting Bid ($)</label><input type="number" id="s-start" value="${S.settings.startingBid}" min="1" /></div>
     </div>
-    <div class="g3">
+    <div class="g2">
       <div class="fg"><label>Anti-Snipe (min)</label><input type="number" id="s-snipe" value="${S.settings.antiSnipeMinutes}" min="0" /></div>
-      <div class="fg"><label>Default Auction Duration (min)</label><input type="number" id="s-aucdur" value="${S.settings.defaultAuctionMinutes||30}" min="1" /></div>
       <div class="fg"><label>Entry Fee per Person ($)</label><input type="number" id="s-fee" value="${S.settings.entryFee||0}" min="0" /></div>
     </div>
+
+    <div class="fg">
+      <label>Auction Length</label>
+      <div style="display:flex;gap:0;border:1px solid var(--cream2);border-radius:8px;overflow:hidden;max-width:340px;margin-bottom:10px">
+        <button id="s-mode-dur" onclick="setSetupAucMode('dur')" style="flex:1;padding:7px;border:none;background:${hasEndTime?'white':'var(--green)'};color:${hasEndTime?'var(--muted)':'white'};font-weight:600;cursor:pointer;font-size:0.82rem">Duration</button>
+        <button id="s-mode-dt"  onclick="setSetupAucMode('dt')"  style="flex:1;padding:7px;border:none;background:${hasEndTime?'var(--green)':'white'};color:${hasEndTime?'white':'var(--muted)'};font-weight:600;cursor:pointer;font-size:0.82rem">Specific End Date & Time</button>
+      </div>
+      <div id="s-dur-row" style="display:${hasEndTime?'none':''}">
+        <input type="number" id="s-aucdur" value="${S.settings.defaultAuctionMinutes||1440}" min="1" />
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:3px">Minutes (e.g. 1440 = 1 day, 4320 = 3 days)</div>
+      </div>
+      <div id="s-dt-row" style="display:${hasEndTime?'':'none'}">
+        <input type="datetime-local" id="s-auctionend" value="${auctionEndVal}" />
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:3px">Times are in your local timezone</div>
+      </div>
+    </div>
+
     <div class="fg" style="max-width:340px">
       <label>Scheduled Auction Start (optional)</label>
       <input type="datetime-local" id="s-schedstart" value="${schedVal}" />
-      <div style="font-size:0.72rem;color:var(--muted);margin-top:4px">Leave blank to start manually. If set, the auction opens automatically at this time and runs for the default duration above.</div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-top:4px">Leave blank to start manually. If set, the auction opens automatically at this time using the auction length above.</div>
     </div>
     <button class="btn btn-green" onclick="saveSettings()" style="margin-top:4px">Save Settings</button>
   </div>
@@ -834,17 +870,25 @@ async function saveSettings() {
   if(p1+p2+p3>100){showToast('Payout %s exceed 100%',true);return;}
   const schedRaw = document.getElementById('s-schedstart').value;
   const scheduledStartTime = schedRaw ? new Date(schedRaw).toISOString() : null;
+  const useDur = document.getElementById('s-dur-row').style.display !== 'none';
+  let defaultAuctionMinutes = +document.getElementById('s-aucdur').value || 1440;
+  let scheduledAuctionEndTime = null;
+  if (!useDur) {
+    const endRaw = document.getElementById('s-auctionend').value;
+    scheduledAuctionEndTime = endRaw ? new Date(endRaw).toISOString() : null;
+  }
   await adminAPI('/settings',{
-    poolName:              document.getElementById('s-name').value.trim(),
-    charityPercent:        +document.getElementById('s-charity').value,
-    payoutSplit:           [p1,p2,p3],
-    maxGolfersPerPerson:   +document.getElementById('s-max').value,
-    minBidIncrement:       +document.getElementById('s-inc').value,
-    startingBid:           +document.getElementById('s-start').value,
-    antiSnipeMinutes:      +document.getElementById('s-snipe').value,
-    defaultAuctionMinutes: +document.getElementById('s-aucdur').value,
-    entryFee:              +document.getElementById('s-fee').value,
+    poolName:                document.getElementById('s-name').value.trim(),
+    charityPercent:          +document.getElementById('s-charity').value,
+    payoutSplit:             [p1,p2,p3],
+    maxGolfersPerPerson:     +document.getElementById('s-max').value,
+    minBidIncrement:         +document.getElementById('s-inc').value,
+    startingBid:             +document.getElementById('s-start').value,
+    antiSnipeMinutes:        +document.getElementById('s-snipe').value,
+    defaultAuctionMinutes,
+    entryFee:                +document.getElementById('s-fee').value,
     scheduledStartTime,
+    scheduledAuctionEndTime,
   });
   showToast('Settings saved!');
 }
@@ -861,7 +905,15 @@ function openSettingsModal() {
   document.getElementById('ms-inc').value     = S.settings.minBidIncrement;
   document.getElementById('ms-start').value   = S.settings.startingBid;
   document.getElementById('ms-snipe').value   = S.settings.antiSnipeMinutes;
-  document.getElementById('ms-aucdur').value  = S.settings.defaultAuctionMinutes || 30;
+  document.getElementById('ms-aucdur').value  = S.settings.defaultAuctionMinutes || 1440;
+  if (S.settings.scheduledAuctionEndTime) {
+    const d = new Date(S.settings.scheduledAuctionEndTime);
+    document.getElementById('ms-auctionend').value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+    setMsAucMode('dt');
+  } else {
+    document.getElementById('ms-auctionend').value = '';
+    setMsAucMode('dur');
+  }
   openM('m-settings');
 }
 
@@ -870,16 +922,24 @@ async function saveSettingsModal() {
   const p2=+document.getElementById('ms-p2').value;
   const p3=+document.getElementById('ms-p3').value;
   if(p1+p2+p3 > 100){ showToast('Payout %s exceed 100%', true); return; }
+  const useDur = document.getElementById('ms-dur-row').style.display !== 'none';
+  let defaultAuctionMinutes = +document.getElementById('ms-aucdur').value || 1440;
+  let scheduledAuctionEndTime = null;
+  if (!useDur) {
+    const endRaw = document.getElementById('ms-auctionend').value;
+    scheduledAuctionEndTime = endRaw ? new Date(endRaw).toISOString() : null;
+  }
   const d = await adminAPI('/settings', {
-    poolName:              document.getElementById('ms-name').value.trim(),
-    charityPercent:        +document.getElementById('ms-charity').value,
-    entryFee:              +document.getElementById('ms-fee').value,
-    payoutSplit:           [p1, p2, p3],
-    maxGolfersPerPerson:   +document.getElementById('ms-max').value,
-    minBidIncrement:       +document.getElementById('ms-inc').value,
-    startingBid:           +document.getElementById('ms-start').value,
-    antiSnipeMinutes:      +document.getElementById('ms-snipe').value,
-    defaultAuctionMinutes: +document.getElementById('ms-aucdur').value,
+    poolName:                document.getElementById('ms-name').value.trim(),
+    charityPercent:          +document.getElementById('ms-charity').value,
+    entryFee:                +document.getElementById('ms-fee').value,
+    payoutSplit:             [p1, p2, p3],
+    maxGolfersPerPerson:     +document.getElementById('ms-max').value,
+    minBidIncrement:         +document.getElementById('ms-inc').value,
+    startingBid:             +document.getElementById('ms-start').value,
+    antiSnipeMinutes:        +document.getElementById('ms-snipe').value,
+    defaultAuctionMinutes,
+    scheduledAuctionEndTime,
   });
   if(d && d.ok !== false){ closeM('m-settings'); showToast('Settings saved!'); }
 }
@@ -1084,6 +1144,26 @@ async function submitBid() {
 }
 
 async function doFinalize(){ if(!confirm('End auction now and lock in all results?'))return; await adminAPI('/auction/finalize',{}); showToast('Auction finalized!'); }
+function setMsAucMode(mode) {
+  const isDur = mode === 'dur';
+  document.getElementById('ms-dur-row').style.display = isDur ? '' : 'none';
+  document.getElementById('ms-dt-row').style.display  = isDur ? 'none' : '';
+  document.getElementById('ms-mode-dur').style.background = isDur ? 'var(--green)' : 'white';
+  document.getElementById('ms-mode-dur').style.color      = isDur ? 'white' : 'var(--muted)';
+  document.getElementById('ms-mode-dt').style.background  = isDur ? 'white' : 'var(--green)';
+  document.getElementById('ms-mode-dt').style.color       = isDur ? 'var(--muted)' : 'white';
+}
+
+function setSetupAucMode(mode) {
+  const isDur = mode === 'dur';
+  document.getElementById('s-dur-row').style.display = isDur ? '' : 'none';
+  document.getElementById('s-dt-row').style.display  = isDur ? 'none' : '';
+  document.getElementById('s-mode-dur').style.background = isDur ? 'var(--green)' : 'white';
+  document.getElementById('s-mode-dur').style.color      = isDur ? 'white' : 'var(--muted)';
+  document.getElementById('s-mode-dt').style.background  = isDur ? 'white' : 'var(--green)';
+  document.getElementById('s-mode-dt').style.color       = isDur ? 'var(--muted)' : 'white';
+}
+
 function setAucMode(mode) {
   const isDur = mode === 'dur';
   document.getElementById('m-dur-row').style.display = isDur ? '' : 'none';

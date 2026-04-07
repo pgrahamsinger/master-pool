@@ -226,8 +226,16 @@ setInterval(() => {
     if (['setup', 'lobby'].includes(room.phase) && room.settings.scheduledStartTime) {
       const t = new Date(room.settings.scheduledStartTime).getTime();
       if (!isNaN(t) && Date.now() > t) {
-        const dur = Number(room.settings.defaultAuctionMinutes) || 30;
-        room.auctionEndTime = new Date(Date.now() + dur * 60000).toISOString();
+        // Use a specific end time if set, otherwise fall back to duration
+        if (room.settings.scheduledAuctionEndTime) {
+          const endT = new Date(room.settings.scheduledAuctionEndTime).getTime();
+          room.auctionEndTime = !isNaN(endT) && endT > Date.now()
+            ? new Date(endT).toISOString()
+            : new Date(Date.now() + (Number(room.settings.defaultAuctionMinutes) || 30) * 60000).toISOString();
+        } else {
+          const dur = Number(room.settings.defaultAuctionMinutes) || 30;
+          room.auctionEndTime = new Date(Date.now() + dur * 60000).toISOString();
+        }
         room.phase = 'auction';
         room.settings.scheduledStartTime = null;
         dirty = true;
@@ -394,7 +402,7 @@ const ra = (suffix, fn) =>
 ra('/settings', (req, res, room) => {
   const fields = ['poolName','charityPercent','payoutSplit','maxGolfersPerPerson',
                   'minBidIncrement','antiSnipeMinutes','startingBid',
-                  'defaultAuctionMinutes','scheduledStartTime','entryFee'];
+                  'defaultAuctionMinutes','scheduledStartTime','scheduledAuctionEndTime','entryFee'];
   fields.forEach(k => { if (req.body[k] !== undefined) room.settings[k] = req.body[k]; });
   saveState(); broadcastRoom(room.code);
   res.json({ ok: true });

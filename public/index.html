@@ -20,40 +20,30 @@
       --muted:   #6B7280;
       --white:   #FFFFFF;
     }
-    *  { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
     h1,h2,h3 { font-family: 'Playfair Display', serif; }
 
-    /* ── Header ──────────────────────────────────── */
+    /* ── Header ─────────────────────────────────── */
     #hdr {
-      background: var(--green);
-      color: white;
-      padding: 0 20px;
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 10px; min-height: 60px;
+      background: var(--green); color: white;
+      padding: 0 20px; display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 10px; min-height: 60px;
     }
     #hdr h1 { font-size: 1.15rem; color: var(--gold-lt); white-space: nowrap; }
-    .hdr-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .phase-pill {
-      background: var(--gold); color: var(--green);
-      font-weight: 700; font-size: 0.7rem; padding: 3px 10px;
-      border-radius: 20px; letter-spacing: 0.06em; text-transform: uppercase;
-    }
+    .hdr-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .phase-pill { background: var(--gold); color: var(--green); font-weight: 700; font-size: 0.7rem; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.06em; text-transform: uppercase; }
     .pot-badge { font-size: 0.82rem; opacity: 0.85; }
     .pot-badge span { color: var(--gold-lt); font-weight: 600; }
-    .admin-btn {
-      background: transparent; border: 1px solid rgba(255,255,255,0.35);
-      color: white; padding: 5px 13px; border-radius: 6px;
-      cursor: pointer; font-size: 0.78rem; font-family: inherit;
-    }
+    .admin-btn { background: transparent; border: 1px solid rgba(255,255,255,0.35); color: white; padding: 5px 13px; border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-family: inherit; }
     .admin-btn.on { background: var(--gold); color: var(--green); border-color: var(--gold); font-weight: 700; }
     #app { max-width: 1100px; margin: 0 auto; padding: 24px 16px 60px; }
 
-    /* ── Cards ───────────────────────────────────── */
+    /* ── Cards ──────────────────────────────────── */
     .card { background: white; border-radius: 12px; border: 1px solid var(--cream2); box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 22px; margin-bottom: 18px; }
     .ctitle { font-size: 0.95rem; font-weight: 600; color: var(--green); margin-bottom: 14px; display: flex; align-items: center; gap: 7px; }
 
-    /* ── Buttons ─────────────────────────────────── */
+    /* ── Buttons ────────────────────────────────── */
     .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 7px; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 500; font-family: inherit; transition: opacity 0.15s, background 0.15s; }
     .btn:disabled { opacity: 0.38; cursor: not-allowed; }
     .btn-green  { background: var(--green); color: white; }
@@ -65,16 +55,17 @@
     .btn-danger { background: #FEE2E2; color: var(--red); border: 1px solid #FCA5A5; }
     .btn-sm { padding: 5px 12px; font-size: 0.78rem; }
 
-    /* ── Forms ───────────────────────────────────── */
+    /* ── Forms ──────────────────────────────────── */
     .fg { margin-bottom: 13px; }
     label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
-    input[type=text], input[type=number], input[type=email], input[type=password], select {
+    input[type=text], input[type=number], input[type=email], input[type=password],
+    input[type=datetime-local], select {
       width: 100%; padding: 9px 12px; border: 1px solid #D1D5DB;
       border-radius: 7px; font-size: 0.9rem; font-family: inherit; background: white;
     }
     input:focus, select:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,87,63,0.12); }
 
-    /* ── Tables ──────────────────────────────────── */
+    /* ── Tables ─────────────────────────────────── */
     .tw { overflow-x: auto; border-radius: 9px; border: 1px solid var(--cream2); }
     table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
     thead th { background: var(--green); color: var(--gold-lt); padding: 9px 12px; text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
@@ -86,146 +77,160 @@
     .so { color: var(--red);  font-weight: 700; }
     .se { color: var(--text); font-weight: 600; }
 
-    /* ── Tabs ────────────────────────────────────── */
+    /* ── Tabs ───────────────────────────────────── */
     .tabs { display: flex; gap: 3px; margin-bottom: 18px; background: #F3F4F6; border-radius: 8px; padding: 3px; width: fit-content; }
     .tab { padding: 6px 16px; border-radius: 6px; border: none; font-size: 0.83rem; font-weight: 500; cursor: pointer; background: transparent; color: var(--muted); font-family: inherit; }
     .tab.on { background: white; color: var(--green); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 
-    /* ── Grids ───────────────────────────────────── */
+    /* ── Grids ──────────────────────────────────── */
     .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
     .g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
     @media(max-width:680px) { .g2,.g3 { grid-template-columns: 1fr; } }
 
-    /* ── Stat tiles ──────────────────────────────── */
+    /* ── Stat tiles ─────────────────────────────── */
     .tile { background: white; border: 1px solid var(--cream2); border-radius: 10px; padding: 14px 18px; text-align: center; }
     .tile .tl { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 4px; }
     .tile .tv { font-size: 1.4rem; font-weight: 700; color: var(--green); }
 
-    /* ── Modals ──────────────────────────────────── */
+    /* ── Modals ─────────────────────────────────── */
     .backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
     .backdrop.open { display: flex; }
     .modal { background: white; border-radius: 14px; padding: 26px; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
     .modal h2 { font-size: 1.15rem; color: var(--green); margin-bottom: 18px; }
     .mclose { float: right; background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--muted); line-height: 1; margin-top: -4px; }
 
-    /* ── Join screen ─────────────────────────────── */
-    #join-screen {
-      min-height: 100vh;
-      background: linear-gradient(160deg, var(--green) 0%, #1a8060 100%);
-      display: flex; align-items: center; justify-content: center; padding: 24px;
-    }
+    /* ── Join screen ────────────────────────────── */
+    #join-screen { min-height: 100vh; background: linear-gradient(160deg, var(--green) 0%, #1a8060 100%); display: flex; align-items: center; justify-content: center; padding: 24px; }
     .join-box { background: white; border-radius: 16px; padding: 36px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
     .join-box h1 { font-size: 1.6rem; color: var(--green); margin-bottom: 6px; }
     .join-box .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 28px; }
     .join-box .fg { text-align: left; }
-    .join-btn { width: 100%; padding: 12px; font-size: 1rem; background: var(--green); color: white; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; font-weight: 600; margin-top: 6px; }
+    .join-btn { width: 100%; padding: 13px; background: var(--green); color: white; border: none; border-radius: 9px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit; margin-bottom: 12px; }
     .join-btn:hover { background: var(--green2); }
-    .join-error { color: var(--red); font-size: 0.85rem; margin-top: 10px; }
+    .join-error { color: var(--red); font-size: 0.82rem; margin-top: 8px; min-height: 18px; }
+    .divider { border-top: 1px solid var(--cream2); margin: 16px 0; }
 
-    /* ── Countdown timer ─────────────────────────── */
-    #timer-bar {
-      background: linear-gradient(135deg, var(--green) 0%, #1a8060 100%);
-      color: white; border-radius: 12px; padding: 16px 22px;
-      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
-      margin-bottom: 18px;
-    }
-    #timer-bar .tclock { font-size: 2rem; font-weight: 700; font-family: 'Playfair Display', serif; color: var(--gold-lt); }
-    #timer-bar.urgent .tclock { color: #FF8080; animation: pulse 1s infinite; }
-    #timer-bar.ended { background: #374151; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-    .tlabel { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; opacity: 0.8; margin-bottom: 3px; }
+    /* ── Room code box ──────────────────────────── */
+    .room-code-box { background: var(--green); color: white; border-radius: 14px; padding: 22px; text-align: center; margin-bottom: 18px; }
+    .rclabel { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.7; margin-bottom: 8px; }
+    .rc { font-size: 2.4rem; font-weight: 700; letter-spacing: 0.2em; color: var(--gold-lt); font-family: monospace; }
+    .rcsub { font-size: 0.78rem; opacity: 0.7; margin-top: 6px; }
 
-    /* ── Golfer auction grid ─────────────────────── */
-    .golfer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 11px; }
-    .gc {
-      background: white; border-radius: 11px; border: 2px solid var(--cream2);
-      padding: 13px 13px 11px; cursor: pointer; transition: all 0.15s; position: relative;
-    }
-    .gc:hover { border-color: var(--green); box-shadow: 0 2px 12px rgba(0,87,63,0.15); }
-    .gc.leading { border-color: #34D399; background: #F0FBF6; }
-    .gc.outbid   { border-color: var(--amber); background: #FFFBF0; }
-    .gc .gname   { font-weight: 600; font-size: 0.88rem; line-height: 1.3; padding-right: 52px; }
-    .gc .grank   { font-size: 0.7rem; color: var(--muted); margin-bottom: 9px; }
-    .gc .gcur    { font-size: 1.05rem; font-weight: 700; color: var(--green); }
-    .gc .gleader { font-size: 0.73rem; color: var(--muted); margin-bottom: 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .gc .gbids   { font-size: 0.68rem; color: var(--muted); }
-    .gc-badge { position: absolute; top: 8px; right: 8px; font-size: 0.6rem; font-weight: 700; padding: 2px 6px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+    /* ── Timer bar ──────────────────────────────── */
+    #timer-bar { background: var(--green); color: white; border-radius: 12px; padding: 16px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+    #timer-bar.urgent { background: #7F1D1D; animation: pulse 1s infinite; }
+    #timer-bar.ended  { background: #374151; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.85} }
+    .tlabel { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; margin-bottom: 3px; }
+    .tclock { font-size: 1.8rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--gold-lt); }
+
+    /* ── Golfer grid ────────────────────────────── */
+    .golfer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 12px; }
+    .gc { background: white; border: 1px solid var(--cream2); border-radius: 11px; padding: 14px; position: relative; transition: box-shadow 0.15s; }
+    .gc.leading { border-color: #86EFAC; background: #F0FBF4; }
+    .gc.outbid  { border-color: #FDE68A; background: #FFFBEB; }
+    .gc.ended   { opacity: 0.75; }
+    .gc-badge { position: absolute; top: 8px; right: 8px; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; padding: 2px 7px; border-radius: 10px; }
     .gc-badge.lead   { background: #D1FAE5; color: #065F46; }
     .gc-badge.outbid { background: #FEF3C7; color: #92400E; }
-    .gc-bid-btn { width: 100%; margin-top: 9px; padding: 7px 0; border-radius: 7px; border: none; font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: inherit; }
-    .gc-bid-btn.can    { background: var(--green); color: white; }
-    .gc-bid-btn.can:hover { opacity: 0.85; }
-    .gc-bid-btn.lead   { background: #D1FAE5; color: #065F46; cursor: default; }
+    .gname { font-weight: 700; font-size: 0.88rem; margin-bottom: 2px; padding-right: 46px; }
+    .grank { font-size: 0.68rem; color: var(--muted); margin-bottom: 9px; }
+    .gcur  { font-size: 1.1rem; font-weight: 700; color: var(--green); }
+    .gleader { font-size: 0.72rem; color: var(--muted); margin-bottom: 6px; }
+    .gbids { font-size: 0.68rem; color: var(--muted); margin-bottom: 10px; }
+    .gc-bid-btn { width: 100%; padding: 7px; border-radius: 7px; border: none; font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .gc-bid-btn.can  { background: var(--green); color: white; }
+    .gc-bid-btn.lead { background: #D1FAE5; color: #065F46; cursor: default; }
     .gc-bid-btn.atmax  { background: #F3F4F6; color: var(--muted); cursor: not-allowed; }
     .gc-bid-btn.ended  { background: #F3F4F6; color: var(--muted); cursor: default; }
 
-    /* ── My golfers strip ────────────────────────── */
-    #my-strip { background: white; border: 1px solid var(--cream2); border-radius: 11px; padding: 13px 17px; margin-bottom: 16px; }
-    #my-strip .ms-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 8px; }
+    /* ── Filter row ─────────────────────────────── */
+    .filter-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 13px; }
+    .fbtn { padding: 5px 12px; border-radius: 6px; border: 1px solid var(--cream2); font-size: 0.78rem; cursor: pointer; background: white; font-family: inherit; color: var(--muted); }
+    .fbtn.on { background: var(--green); color: white; border-color: var(--green); font-weight: 600; }
+
+    /* ── My strip ───────────────────────────────── */
+    #my-strip { background: #F0FBF4; border: 1px solid #86EFAC; border-radius: 10px; padding: 11px 14px; margin-bottom: 13px; }
+    .ms-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #065F46; margin-bottom: 8px; }
     .my-chips { display: flex; flex-wrap: wrap; gap: 7px; }
-    .my-chip  { display: flex; align-items: center; gap: 6px; background: #F0FBF6; border: 1px solid #34D399; border-radius: 7px; padding: 5px 11px; font-size: 0.8rem; }
-    .my-chip .cn { font-weight: 600; color: var(--green); }
+    .my-chip  { background: white; border: 1px solid #86EFAC; border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; display: flex; gap: 6px; }
+    .my-chip .cn { font-weight: 600; }
     .my-chip .ca { color: var(--green); font-weight: 700; }
 
-    /* ── Bid modal ───────────────────────────────── */
-    #bid-golfer-name { font-size: 1.25rem; color: var(--green); font-family: 'Playfair Display', serif; margin-bottom: 4px; }
-    #bid-current-info { color: var(--muted); font-size: 0.83rem; margin-bottom: 16px; }
-    .quick-bids { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
-    .qb { padding: 5px 11px; border: 1px solid var(--cream2); border-radius: 6px; font-size: 0.78rem; cursor: pointer; font-family: inherit; background: white; }
-    .qb:hover { background: var(--cream); border-color: var(--green); }
-
-    /* ── Admin panel ─────────────────────────────── */
+    /* ── Admin panel ────────────────────────────── */
     #admin-panel { background: #FFFBF0; border: 1px solid var(--gold); border-radius: 10px; padding: 13px 17px; margin-bottom: 16px; }
     #admin-panel .apl { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber); margin-bottom: 9px; }
-    .aflex { display: flex; gap: 7px; flex-wrap: wrap; align-items: flex-end; }
+    .aflex { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .irow  { display: flex; gap: 8px; align-items: flex-end; }
+    .irow .fg { flex: 1; margin-bottom: 0; }
 
-    /* ── Room code ───────────────────────────────── */
-    .room-code-box { background: var(--green); color: white; border-radius: 12px; padding: 20px 22px; text-align: center; margin-bottom: 18px; }
-    .room-code-box .rclabel { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.8; margin-bottom: 7px; }
-    .room-code-box .rc { font-size: 2.7rem; font-weight: 700; letter-spacing: 0.14em; color: var(--gold-lt); font-family: monospace; }
-    .room-code-box .rcsub { font-size: 0.78rem; opacity: 0.7; margin-top: 5px; }
-
-    /* ── Filter row ──────────────────────────────── */
-    .filter-row { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 13px; align-items: center; }
-    .filter-row input { max-width: 200px; }
-    .fbtn { padding: 5px 12px; border-radius: 6px; border: 1px solid var(--cream2); background: white; cursor: pointer; font-size: 0.78rem; font-family: inherit; }
-    .fbtn.on { background: var(--green); color: white; border-color: var(--green); }
-
-    /* ── Misc ────────────────────────────────────── */
-    .divider { height: 1px; background: var(--cream2); margin: 13px 0; }
-    .muted { color: var(--muted); font-size: 0.84rem; }
-    .tg    { color: var(--green); font-weight: 600; }
-    .mt2 { margin-top: 8px; } .mt3 { margin-top: 14px; } .mt4 { margin-top: 20px; }
-    .fx { display: flex; align-items: center; } .g2px { gap: 8px; } .g3px { gap: 14px; }
-    .jb { justify-content: space-between; } .fw { flex-wrap: wrap; }
-    .irow { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
-    .irow .fg { margin-bottom: 0; flex: 1; }
-    .empty { text-align: center; padding: 30px; color: var(--muted); }
-    .owner-tag { display: inline-block; background: #EEF7EE; color: var(--green); font-size: 0.72rem; padding: 2px 8px; border-radius: 11px; font-weight: 500; }
-    #toast { position: fixed; bottom: 20px; right: 20px; background: var(--green); color: white; padding: 10px 17px; border-radius: 9px; font-size: 0.83rem; font-weight: 500; box-shadow: 0 4px 20px rgba(0,0,0,0.25); display: none; z-index: 300; max-width: 300px; }
-    #toast.err { background: var(--red); }
-    .spin { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .payout-row { display: flex; align-items: center; gap: 11px; padding: 10px 0; border-bottom: 1px solid #F3F4F6; }
-    .payout-row:last-child { border-bottom: none; }
-    .pr-med { font-size: 1.3rem; width: 30px; text-align: center; }
+    /* ── Payout rows ────────────────────────────── */
+    .payout-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F3F4F6; }
+    .payout-row:last-of-type { border: none; }
+    .pr-med  { font-size: 1.4rem; }
     .pr-info { flex: 1; }
-    .pr-golfer { font-weight: 600; font-size: 0.88rem; }
+    .pr-golfer { font-weight: 700; font-size: 0.9rem; }
     .pr-owner  { font-size: 0.76rem; color: var(--muted); }
-    .pr-amt    { font-size: 1rem; font-weight: 700; color: var(--green); }
-    .winner-banner { background: linear-gradient(135deg, var(--green), #1a8060); color: white; border-radius: 14px; padding: 32px; text-align: center; margin-bottom: 18px; }
-    .winner-banner h2 { font-size: 1.9rem; color: var(--gold-lt); }
-    .winner-banner .ws { opacity: 0.85; margin-top: 6px; font-size: 0.92rem; }
+    .pr-amt    { font-size: 1.05rem; font-weight: 700; color: var(--green); white-space: nowrap; }
+    .tg { color: #059669; font-weight: 600; }
+
+    /* ── Winner banner ──────────────────────────── */
+    .winner-banner { background: linear-gradient(135deg, var(--green) 0%, #1a8060 100%); color: white; border-radius: 14px; padding: 28px; text-align: center; margin-bottom: 18px; }
+    .winner-banner h2 { font-size: 1.6rem; color: var(--gold-lt); margin-bottom: 8px; }
+    .winner-banner .ws { font-size: 1rem; opacity: 0.9; }
+
+    /* ── Owner tag ──────────────────────────────── */
+    .owner-tag { background: #E0F2FE; color: #0369A1; padding: 2px 8px; border-radius: 10px; font-size: 0.76rem; font-weight: 600; white-space: nowrap; }
+
+    /* ── Quick bids ─────────────────────────────── */
+    #quick-bids { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 12px; }
+    .qb { padding: 5px 13px; border: 1px solid var(--green); background: white; color: var(--green); border-radius: 6px; font-size: 0.82rem; cursor: pointer; font-weight: 600; font-family: inherit; }
+    .qb:hover { background: var(--cream); }
+
+    /* ── Spinner ────────────────────────────────── */
+    .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Misc ───────────────────────────────────── */
+    .mt3 { margin-top: 14px; }
+    .fx  { display: flex; }
+    .jb  { justify-content: space-between; }
+    .g2px { gap: 8px; }
+    .muted { color: var(--muted); font-size: 0.85rem; }
+    .empty { text-align: center; padding: 28px; color: var(--muted); font-size: 0.85rem; }
+
+    /* ── Toast ──────────────────────────────────── */
+    #toast { position: fixed; bottom: 24px; right: 24px; z-index: 999; pointer-events: none; }
+    .toast-item { background: #1F2937; color: white; padding: 10px 18px; border-radius: 9px; font-size: 0.85rem; margin-top: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.25); opacity: 0; transform: translateY(10px); transition: all 0.25s; max-width: 320px; }
+    .toast-item.show { opacity: 1; transform: none; }
+    .toast-item.err  { background: var(--red); }
+
+    /* ── Rooms dashboard ────────────────────────── */
+    .rooms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 14px; margin-top: 18px; }
+    .room-card { background: white; border: 2px solid var(--cream2); border-radius: 12px; padding: 20px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
+    .room-card:hover { border-color: var(--green); box-shadow: 0 4px 14px rgba(0,87,63,0.12); }
+    .room-card.add-card { border-style: dashed; border-color: #D1D5DB; color: var(--muted); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 600; min-height: 130px; }
+    .room-card.add-card:hover { border-color: var(--green); color: var(--green); }
+    .rc-name { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; color: var(--green); margin-bottom: 6px; }
+    .rc-code { font-family: monospace; font-size: 1.3rem; font-weight: 700; letter-spacing: 0.15em; color: var(--gold); margin-bottom: 8px; }
+    .rc-meta { font-size: 0.76rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 10px; }
+    .rc-phase { display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 0.66rem; font-weight: 700; text-transform: uppercase; background: #F3F4F6; color: var(--muted); }
+    .rc-phase.setup   { background: #E0F2FE; color: #0369A1; }
+    .rc-phase.lobby   { background: #FEF3C7; color: #92400E; }
+    .rc-phase.auction { background: #DCFCE7; color: #166534; }
+    .rc-phase.scoring { background: #EDE9FE; color: #5B21B6; }
+    .rc-phase.final   { background: #FEE2E2; color: var(--red); }
   </style>
 </head>
 <body>
 
-<!-- Header (hidden until logged in) -->
+<!-- Header -->
 <div id="hdr" style="display:none">
   <h1 id="pool-name">Graham's Masters Pool 2026</h1>
   <div class="hdr-right">
     <span id="phase-pill" class="phase-pill">Setup</span>
     <span id="pot-badge" class="pot-badge"></span>
+    <button id="rooms-btn" class="admin-btn" onclick="showRoomsDashboard()" style="display:none">← Rooms</button>
     <button id="admin-btn" class="admin-btn" onclick="toggleAdmin()">⚙ Admin</button>
   </div>
 </div>
@@ -233,10 +238,9 @@
 <!-- Join screen -->
 <div id="join-screen">
   <div class="join-box">
-    <h1>⛳ Masters Pool</h1>
+    <h1 id="pool-name-join">Graham's Masters Pool 2026</h1>
     <div class="sub">Masters 2026</div>
-    <div class="fg">
-      <label>Room Code</label>
+    <div class="fg"><label>Room Code</label>
       <input type="text" id="j-code" placeholder="e.g. ABC123"
         style="text-transform:uppercase;letter-spacing:0.12em;font-weight:700;font-size:1.05rem;text-align:center"
         maxlength="6" oninput="this.value=this.value.toUpperCase()" />
@@ -295,29 +299,40 @@
 <div id="m-bid" class="backdrop">
   <div class="modal">
     <button class="mclose" onclick="closeM('m-bid')">×</button>
-    <div id="bid-golfer-name">Golfer</div>
-    <div id="bid-current-info">No bids yet</div>
-    <div class="fg mt3"><label>Your Bid ($)</label>
-      <input type="number" id="bid-amt" min="1" step="1"
-        onkeydown="if(event.key==='Enter')submitBid()" /></div>
-    <div class="quick-bids" id="quick-bids"></div>
-    <div class="fx g2px mt3">
+    <h2 id="bid-golfer-name"></h2>
+    <p id="bid-current-info" class="muted" style="margin-bottom:14px"></p>
+    <div id="quick-bids"></div>
+    <div class="fg"><label>Your Bid ($)</label>
+      <input type="number" id="bid-amt" min="1" onkeydown="if(event.key==='Enter')submitBid()" /></div>
+    <div id="bid-error" style="color:var(--red);font-size:0.82rem;margin-bottom:10px;min-height:16px"></div>
+    <div class="fx g2px">
       <button class="btn btn-gold" onclick="submitBid()">Place Bid</button>
       <button class="btn btn-out" onclick="closeM('m-bid')">Cancel</button>
     </div>
-    <div id="bid-error" style="color:var(--red);font-size:0.82rem;margin-top:8px"></div>
   </div>
 </div>
 
 <div id="m-scores" class="backdrop">
-  <div class="modal" style="max-width:570px">
+  <div class="modal" style="max-width:560px">
     <button class="mclose" onclick="closeM('m-scores')">×</button>
-    <h2>Manual Score Entry</h2>
-    <p class="muted mt2">Pos: T2, 1, MC, WD &nbsp;|&nbsp; Score: -8, +2, E</p>
-    <div id="score-rows" class="mt3" style="max-height:55vh;overflow-y:auto"></div>
+    <h2>✎ Manual Score Entry</h2>
+    <p class="muted" style="margin-bottom:14px">Enter position (e.g. T1, 5, CUT) and score to par (e.g. -8, E, +3).</p>
+    <div id="score-rows" style="max-height:55vh;overflow-y:auto"></div>
     <div class="fx g2px mt3">
-      <button class="btn btn-green" onclick="saveManualScores()">Save</button>
+      <button class="btn btn-green" onclick="saveManualScores()">Save Scores</button>
       <button class="btn btn-out" onclick="closeM('m-scores')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="m-newroom" class="backdrop">
+  <div class="modal">
+    <h2>➕ Create New Room</h2>
+    <div class="fg"><label>Pool Name</label>
+      <input type="text" id="nr-name" value="Graham's Masters Pool 2026" /></div>
+    <div class="fx g2px mt3">
+      <button class="btn btn-green" onclick="doCreateRoom()">Create Room</button>
+      <button class="btn btn-out" onclick="closeM('m-newroom')">Cancel</button>
     </div>
   </div>
 </div>
@@ -329,40 +344,62 @@
 // ──────────────────────────────────────────────
 //  Global state
 // ──────────────────────────────────────────────
-let S          = null;   // server state mirror
-let me         = null;   // current participant { id, name, email }
-let isAdmin    = false;
-let adminPw    = '';
-let sTab       = 'standings';
-let bidGolfId  = null;
-let timerIval  = null;
-let gFilter    = 'all';  // 'all' | 'mine' | 'hot' | 'unbid'
+let S              = null;   // current room state from server
+let me             = null;   // participant { id, name, email }
+let myRoomCode     = null;   // room code we joined / are viewing
+let isAdmin        = false;
+let adminPw        = '';
+let adminRooms     = [];     // summary list from GET /api/admin/rooms
+let sTab           = 'standings';
+let bidGolfId      = null;
+let timerIval      = null;
+let gFilter        = 'all';
 
 // ──────────────────────────────────────────────
 //  Session (survives page refresh in same tab)
 // ──────────────────────────────────────────────
 (function loadSession() {
-  try { const r = sessionStorage.getItem('mp_me'); if (r) me = JSON.parse(r); } catch {}
+  try {
+    const r = sessionStorage.getItem('mp_session');
+    if (r) { const s = JSON.parse(r); me = s.me; myRoomCode = s.roomCode; }
+  } catch {}
 })();
-function saveSession() { try { sessionStorage.setItem('mp_me', JSON.stringify(me)); } catch {} }
+function saveSession() {
+  try { sessionStorage.setItem('mp_session', JSON.stringify({ me, roomCode: myRoomCode })); } catch {}
+}
+function clearSession() {
+  try { sessionStorage.removeItem('mp_session'); } catch {}
+  me = null; myRoomCode = null;
+}
 
 // ──────────────────────────────────────────────
 //  Socket
 // ──────────────────────────────────────────────
 const socket = io();
-socket.on('state_update', state => { S = state; onState(); });
+socket.on('connect', () => {
+  if (myRoomCode) socket.emit('join_room', myRoomCode);
+});
+socket.on('state_update', state => {
+  S = state;
+  onState();
+});
+
+function subscribeRoom(code) {
+  myRoomCode = code;
+  socket.emit('join_room', code);
+}
 
 // ──────────────────────────────────────────────
-//  Boot logic
+//  Boot / state handler
 // ──────────────────────────────────────────────
-function onState() {
+async function onState() {
   if (!S) return;
-  // Sync snipe label whenever state arrives
   const sl = document.getElementById('snipe-min');
   if (sl) sl.textContent = S.settings.antiSnipeMinutes;
-
   const loggedIn = me || isAdmin;
   if (!loggedIn) { showJoin(); return; }
+  // If we are admin but haven't selected a room yet, stay on dashboard
+  if (isAdmin && !myRoomCode) return;
   showMain();
 }
 
@@ -373,6 +410,7 @@ function showJoin() {
 }
 
 function showMain() {
+  if (!S) return;
   document.getElementById('join-screen').style.display = 'none';
   document.getElementById('hdr').style.display = 'flex';
   document.getElementById('app').style.display = 'block';
@@ -384,6 +422,7 @@ function showMain() {
 //  Header
 // ──────────────────────────────────────────────
 function renderHeader() {
+  if (!S) return;
   document.getElementById('pool-name').textContent = S.settings.poolName;
   const labels = { setup:'Setup', lobby:'Lobby', auction:'Live Auction', scoring:'Tournament', final:'Final' };
   document.getElementById('phase-pill').textContent = labels[S.phase] || S.phase;
@@ -392,12 +431,16 @@ function renderHeader() {
   const b = document.getElementById('admin-btn');
   b.textContent = isAdmin ? '⚙ Admin ✓' : '⚙ Admin';
   b.className   = 'admin-btn' + (isAdmin ? ' on' : '');
+  // Show "← Rooms" button if admin has more than one room or is in admin mode
+  const rb = document.getElementById('rooms-btn');
+  rb.style.display = isAdmin ? 'inline-flex' : 'none';
 }
 
 // ──────────────────────────────────────────────
 //  Phase router
 // ──────────────────────────────────────────────
 function renderPhase() {
+  if (!S) return;
   const app = document.getElementById('app');
   startTimer();
   switch (S.phase) {
@@ -414,46 +457,41 @@ function renderPhase() {
 //  Helpers
 // ──────────────────────────────────────────────
 function livePot() {
-  return S.golfers.reduce((s,g) => {
-    const v = S.phase === 'auction' ? (g.currentBid||0) : (g.bid||0);
-    return s + v;
-  }, 0);
+  if (!S) return 0;
+  return S.golfers.reduce((s,g) => s + (S.phase === 'auction' ? (g.currentBid||0) : (g.bid||0)), 0);
 }
-function fmt$(n) { return '$' + Number(n).toLocaleString(); }
+function fmt$(n)  { return '$' + Number(n).toLocaleString(); }
 function fmtD$(n) { return '$' + Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function sClass(v) { if(!v||v==='--'||v==='E')return 'se'; return v.startsWith('-')?'su':'so'; }
+function esc(s)   { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function sClass(v){ if(!v||v==='--'||v==='E')return 'se'; return v.startsWith('-')?'su':'so'; }
 function parsePos(p) {
   if(!p||p==='--') return 9999;
-  const c = p.replace(/^T/,'');
+  const c=p.replace(/^T/,'');
   if(['MC','CUT'].includes(c)) return 9998;
   if(c==='WD') return 9997; if(c==='DQ') return 9996;
   return parseInt(c)||9999;
 }
-function parseScore(s) { if(!s||s==='--') return 9999; if(s==='E') return 0; return parseInt(s)||0; }
+function parseScore(s){ if(!s||s==='--') return 9999; if(s==='E') return 0; return parseInt(s)||0; }
 
 function fmtCountdown(endTime) {
   const rem = new Date(endTime).getTime() - Date.now();
   if (rem <= 0) return 'ENDED';
-  const s = Math.floor(rem/1000), h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sc = s%60;
-  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`;
+  const s=Math.floor(rem/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sc=s%60;
+  if(h>0) return `${h}:${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`;
   return `${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`;
 }
 
 function startTimer() {
-  if (timerIval) clearInterval(timerIval);
-  if (S.phase === 'auction' && S.auctionEndTime) {
-    timerIval = setInterval(() => {
-      const clk = document.getElementById('clock');
-      if (!clk || !S?.auctionEndTime) return;
-      clk.textContent = fmtCountdown(S.auctionEndTime);
-      const rem = new Date(S.auctionEndTime).getTime() - Date.now();
-      const bar = document.getElementById('timer-bar');
-      if (bar) {
-        bar.classList.toggle('urgent', rem > 0 && rem < 120000);
-        bar.classList.toggle('ended', rem <= 0);
-      }
-    }, 500);
+  if(timerIval) clearInterval(timerIval);
+  if(S && S.phase==='auction' && S.auctionEndTime) {
+    timerIval = setInterval(()=>{
+      const clk=document.getElementById('clock');
+      if(!clk||!S?.auctionEndTime) return;
+      clk.textContent=fmtCountdown(S.auctionEndTime);
+      const rem=new Date(S.auctionEndTime).getTime()-Date.now();
+      const bar=document.getElementById('timer-bar');
+      if(bar){ bar.classList.toggle('urgent',rem>0&&rem<120000); bar.classList.toggle('ended',rem<=0); }
+    },500);
   }
 }
 
@@ -466,17 +504,108 @@ async function submitJoin() {
   const email = document.getElementById('j-email').value.trim();
   const errEl = document.getElementById('join-error');
   errEl.textContent = '';
-  if (!code||!name||!email) { errEl.textContent='Please fill in all fields.'; return; }
-  if (!email.includes('@'))  { errEl.textContent='Enter a valid email.'; return; }
-  const res  = await fetch('/api/join', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({roomCode:code, name, email}),
-  });
-  const data = await res.json();
-  if (!data.ok) { errEl.textContent = data.error||'Could not join.'; return; }
-  me = data.participant;
-  saveSession();
-  showMain();
+  if(!code||!name||!email){ errEl.textContent='Please fill in all fields.'; return; }
+  if(!email.includes('@')){ errEl.textContent='Enter a valid email.'; return; }
+  try {
+    const res  = await fetch('/api/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:code,name,email})});
+    const data = await res.json();
+    if(!data.ok){ errEl.textContent=data.error||'Could not join.'; return; }
+    me = data.participant;
+    subscribeRoom(data.roomCode);
+    saveSession();
+    // Fetch initial state since socket may not have responded yet
+    const st = await fetch(`/api/room/${data.roomCode}/state`).then(r=>r.json());
+    S = st;
+    showMain();
+  } catch(e) { errEl.textContent='Cannot reach server. Make sure it is running.'; }
+}
+
+// ──────────────────────────────────────────────
+//  ADMIN — Rooms dashboard
+// ──────────────────────────────────────────────
+function showRoomsDashboard() {
+  // Leave current room socket subscription
+  if(myRoomCode) { socket.emit('leave_room', myRoomCode); myRoomCode = null; S = null; }
+  document.getElementById('join-screen').style.display = 'none';
+  document.getElementById('hdr').style.display = 'flex';
+  document.getElementById('app').style.display = 'block';
+  // Reset header for dashboard
+  document.getElementById('pool-name').textContent = "Graham's Masters Pool 2026";
+  document.getElementById('phase-pill').textContent = 'Admin';
+  document.getElementById('pot-badge').innerHTML = '';
+  document.getElementById('rooms-btn').style.display = 'none';
+  document.getElementById('admin-btn').textContent = '⚙ Admin ✓';
+  document.getElementById('admin-btn').className = 'admin-btn on';
+  renderRoomsDashboard();
+}
+
+async function refreshAdminRooms() {
+  try {
+    const r = await fetch('/api/admin/rooms',{headers:{'x-admin-password':adminPw}});
+    const d = await r.json();
+    if(d.ok) adminRooms = d.rooms || [];
+  } catch {}
+}
+
+function phaseLabel(p){ return {setup:'Setup',lobby:'Lobby',auction:'Auction',scoring:'Scoring',final:'Final'}[p]||p; }
+
+function renderRoomsDashboard() {
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:6px">
+      <h2 style="font-size:1.4rem;color:var(--green)">🏌️ Your Rooms</h2>
+      <button class="btn btn-green btn-sm" onclick="openM('m-newroom')">+ New Room</button>
+    </div>
+    <p class="muted" style="margin-bottom:4px">Click a room to manage it. Each room has its own participants, settings, and auction.</p>
+    <div class="rooms-grid">
+      ${adminRooms.map(r=>`
+        <div class="room-card" onclick="selectAdminRoom('${esc(r.code)}')">
+          <div class="rc-name">${esc(r.poolName)}</div>
+          <div class="rc-code">${esc(r.code)}</div>
+          <div class="rc-meta">
+            <span class="rc-phase ${r.phase}">${phaseLabel(r.phase)}</span>
+            <span>👥 ${r.participants} participants</span>
+            ${r.entryFee>0?`<span>💵 $${r.entryFee}/person</span>`:''}
+            ${r.scheduledStartTime?`<span>⏰ Scheduled</span>`:''}
+            ${r.auctionEndTime&&r.phase==='auction'?`<span style="color:#059669;font-weight:700">🟢 Live</span>`:''}
+          </div>
+          <div style="margin-top:12px;display:flex;gap:7px">
+            <button class="btn btn-green btn-sm" onclick="event.stopPropagation();selectAdminRoom('${esc(r.code)}')">Manage →</button>
+            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteRoom('${esc(r.code)}')">Delete</button>
+          </div>
+        </div>
+      `).join('')}
+      <div class="room-card add-card" onclick="openM('m-newroom')">+ Create New Room</div>
+    </div>`;
+}
+
+async function selectAdminRoom(code) {
+  subscribeRoom(code);
+  try {
+    const st = await fetch(`/api/room/${code}/state`).then(r=>r.json());
+    S = st;
+    showMain();
+  } catch(e) { showToast('Could not load room',true); }
+}
+
+async function doCreateRoom() {
+  const name = document.getElementById('nr-name').value.trim()||"Graham's Masters Pool 2026";
+  try {
+    const r = await fetch('/api/admin/rooms/create',{method:'POST',headers:{'Content-Type':'application/json','x-admin-password':adminPw},body:JSON.stringify({settings:{poolName:name}})});
+    const d = await r.json();
+    if(d.ok){ closeM('m-newroom'); showToast(`Room ${d.code} created!`); await refreshAdminRooms(); selectAdminRoom(d.code); }
+    else showToast(d.error||'Could not create room',true);
+  } catch { showToast('Network error',true); }
+}
+
+async function deleteRoom(code) {
+  if(!confirm(`Delete room ${code}? This cannot be undone.`)) return;
+  try {
+    const r = await fetch(`/api/admin/rooms/${code}/delete`,{method:'POST',headers:{'x-admin-password':adminPw}});
+    const d = await r.json();
+    if(d.ok){ showToast('Room deleted'); await refreshAdminRooms(); renderRoomsDashboard(); }
+    else showToast(d.error||'Could not delete',true);
+  } catch { showToast('Network error',true); }
 }
 
 // ──────────────────────────────────────────────
@@ -485,16 +614,24 @@ async function submitJoin() {
 function renderSetup() {
   if (!isAdmin) return `<div class="card"><div class="ctitle">⏳ Pool Setup In Progress</div>
     <p class="muted">Your admin is configuring the pool. Once they open registration, you'll be able to join with a room code.</p></div>`;
+
+  // Format scheduledStartTime for datetime-local input (strip seconds)
+  let schedVal = '';
+  if(S.settings.scheduledStartTime) {
+    try { schedVal = new Date(S.settings.scheduledStartTime).toISOString().slice(0,16); } catch {}
+  }
+
   return `
   <div class="room-code-box">
     <div class="rclabel">Room Code — share with participants</div>
-    <div class="rc">${esc(S.roomCode)}</div>
+    <div class="rc">${esc(S.code)}</div>
     <div class="rcsub">Participants enter this on the join screen</div>
     <div style="margin-top:10px;display:flex;gap:7px;justify-content:center;flex-wrap:wrap">
       <button class="btn btn-gold btn-sm" onclick="copyCode()">Copy Code</button>
       <button class="btn btn-out btn-sm" style="color:white;border-color:rgba(255,255,255,0.4)" onclick="regenCode()">Regenerate</button>
     </div>
   </div>
+
   <div class="card">
     <div class="ctitle">⚙ Pool Settings</div>
     <div class="g2">
@@ -511,9 +648,19 @@ function renderSetup() {
       <div class="fg"><label>Min Bid Increment ($)</label><input type="number" id="s-inc" value="${S.settings.minBidIncrement}" min="1" /></div>
       <div class="fg"><label>Starting Bid ($)</label><input type="number" id="s-start" value="${S.settings.startingBid}" min="1" /></div>
     </div>
-    <div class="fg" style="max-width:180px"><label>Anti-Snipe (min)</label><input type="number" id="s-snipe" value="${S.settings.antiSnipeMinutes}" min="0" /></div>
-    <button class="btn btn-green" onclick="saveSettings()">Save Settings</button>
+    <div class="g3">
+      <div class="fg"><label>Anti-Snipe (min)</label><input type="number" id="s-snipe" value="${S.settings.antiSnipeMinutes}" min="0" /></div>
+      <div class="fg"><label>Default Auction Duration (min)</label><input type="number" id="s-aucdur" value="${S.settings.defaultAuctionMinutes||30}" min="1" /></div>
+      <div class="fg"><label>Entry Fee per Person ($)</label><input type="number" id="s-fee" value="${S.settings.entryFee||0}" min="0" /></div>
+    </div>
+    <div class="fg" style="max-width:340px">
+      <label>Scheduled Auction Start (optional)</label>
+      <input type="datetime-local" id="s-schedstart" value="${schedVal}" />
+      <div style="font-size:0.72rem;color:var(--muted);margin-top:4px">Leave blank to start manually. If set, the auction opens automatically at this time and runs for the default duration above.</div>
+    </div>
+    <button class="btn btn-green" onclick="saveSettings()" style="margin-top:4px">Save Settings</button>
   </div>
+
   <div class="card">
     <div class="ctitle">🏌️ Golfer Field (${S.golfers.length})</div>
     <p class="muted">Pre-loaded with ~55 likely Masters 2026 invitees. Modify as needed before opening the lobby.</p>
@@ -529,53 +676,82 @@ function renderSetup() {
       </div>`).join('')}
     </div>
     <div class="divider"></div>
-    <button class="btn btn-gold" onclick="openLobby()" ${S.participants.length===0?'':''}>→ Open Registration Lobby</button>
+    <button class="btn btn-gold" onclick="openLobby()">→ Open Registration Lobby</button>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">🔐 Change Admin Password</div>
+    <div class="g2">
+      <div class="fg"><label>New Password</label><input type="password" id="pw-new" placeholder="At least 6 characters" /></div>
+      <div class="fg"><label>Confirm Password</label><input type="password" id="pw-confirm" placeholder="Repeat password" /></div>
+    </div>
+    <button class="btn btn-out" onclick="changeAdminPassword()">Change Password</button>
   </div>`;
 }
 
 async function saveSettings() {
   const p1=+document.getElementById('s-p1').value, p2=+document.getElementById('s-p2').value, p3=+document.getElementById('s-p3').value;
   if(p1+p2+p3>100){showToast('Payout %s exceed 100%',true);return;}
-  await adminAPI('/api/admin/settings',{
-    poolName:document.getElementById('s-name').value.trim(),
-    charityPercent:+document.getElementById('s-charity').value,
-    payoutSplit:[p1,p2,p3],
-    maxGolfersPerPerson:+document.getElementById('s-max').value,
-    minBidIncrement:+document.getElementById('s-inc').value,
-    startingBid:+document.getElementById('s-start').value,
-    antiSnipeMinutes:+document.getElementById('s-snipe').value,
+  const schedRaw = document.getElementById('s-schedstart').value;
+  const scheduledStartTime = schedRaw ? new Date(schedRaw).toISOString() : null;
+  await adminAPI('/settings',{
+    poolName:              document.getElementById('s-name').value.trim(),
+    charityPercent:        +document.getElementById('s-charity').value,
+    payoutSplit:           [p1,p2,p3],
+    maxGolfersPerPerson:   +document.getElementById('s-max').value,
+    minBidIncrement:       +document.getElementById('s-inc').value,
+    startingBid:           +document.getElementById('s-start').value,
+    antiSnipeMinutes:      +document.getElementById('s-snipe').value,
+    defaultAuctionMinutes: +document.getElementById('s-aucdur').value,
+    entryFee:              +document.getElementById('s-fee').value,
+    scheduledStartTime,
   });
   showToast('Settings saved!');
 }
+
+async function changeAdminPassword() {
+  const np = document.getElementById('pw-new').value;
+  const cp = document.getElementById('pw-confirm').value;
+  if(!np){ showToast('Enter a new password',true); return; }
+  if(np.length < 6){ showToast('Password must be at least 6 characters',true); return; }
+  if(np !== cp){ showToast('Passwords do not match',true); return; }
+  try {
+    const r = await fetch('/api/admin/password',{method:'POST',headers:{'Content-Type':'application/json','x-admin-password':adminPw},body:JSON.stringify({newPassword:np})});
+    const d = await r.json();
+    if(d.ok){ adminPw = np; document.getElementById('pw-new').value=''; document.getElementById('pw-confirm').value=''; showToast('Password changed! Keep it somewhere safe.'); }
+    else showToast(d.error||'Could not change password',true);
+  } catch { showToast('Network error',true); }
+}
+
 async function addGolfer() {
   const n=document.getElementById('new-g').value.trim(); if(!n)return;
   const mx=Math.max(0,...S.golfers.map(g=>g.id));
-  await adminAPI('/api/admin/golfers',{golfers:[...S.golfers,{id:mx+1,name:n,ranking:mx+1}]});
+  await adminAPI('/golfers',{golfers:[...S.golfers,{id:mx+1,name:n,ranking:mx+1}]});
   document.getElementById('new-g').value='';
 }
-async function removeGolfer(id){await adminAPI('/api/admin/golfers',{golfers:S.golfers.filter(g=>g.id!==id)});}
-async function openLobby(){await adminAPI('/api/admin/phase',{phase:'lobby'});showToast('Lobby open — share the room code!');}
-async function copyCode(){try{await navigator.clipboard.writeText(S.roomCode);showToast('Code copied: '+S.roomCode);}catch{showToast('Code: '+S.roomCode);}}
-async function regenCode(){if(!confirm('Generate a new room code?'))return;await adminAPI('/api/admin/roomcode/regenerate',{});showToast('New code generated');}
+async function removeGolfer(id){ await adminAPI('/golfers',{golfers:S.golfers.filter(g=>g.id!==id)}); }
+async function openLobby(){ await adminAPI('/phase',{phase:'lobby'}); showToast('Lobby open — share the room code!'); }
+async function copyCode(){ try{await navigator.clipboard.writeText(S.code);showToast('Code copied: '+S.code);}catch{showToast('Code: '+S.code);} }
+async function regenCode(){ if(!confirm('Generate a new room code? Existing participants will need the new code.'))return; const d=await adminAPI('/roomcode/regenerate',{}); if(d.roomCode) myRoomCode=d.roomCode; showToast('New code generated'); }
 
 // ──────────────────────────────────────────────
 //  LOBBY
 // ──────────────────────────────────────────────
 function renderLobby() {
   return `
-  ${isAdmin ? `<div class="room-code-box">
+  ${isAdmin?`<div class="room-code-box">
     <div class="rclabel">Share this Room Code</div>
-    <div class="rc">${esc(S.roomCode)}</div>
+    <div class="rc">${esc(S.code)}</div>
     <div class="rcsub">Participants visit this URL and enter the code</div>
     <div style="margin-top:9px"><button class="btn btn-gold btn-sm" onclick="copyCode()">Copy Code</button></div>
-  </div>` : `<div class="card" style="text-align:center;padding:36px">
+  </div>`:`<div class="card" style="text-align:center;padding:36px">
     <div style="font-size:2.5rem;margin-bottom:10px">⛳</div>
     <h2 style="color:var(--green);margin-bottom:7px">You're in!</h2>
     <p class="muted">Welcome, <strong>${esc(me?.name||'')}</strong>. Waiting for the admin to start the auction…</p>
   </div>`}
   <div class="card">
     <div class="ctitle">👥 Participants (${S.participants.length})</div>
-    ${S.participants.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">
+    ${S.participants.length?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">
       ${S.participants.map(p=>`<div style="display:flex;align-items:center;gap:9px;padding:8px 11px;border:1px solid var(--cream2);border-radius:8px;background:${p.id===me?.id?'#F0FBF6':'white'}">
         <div style="width:30px;height:30px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.78rem;flex-shrink:0">${esc(p.name.charAt(0).toUpperCase())}</div>
         <div style="flex:1;min-width:0">
@@ -584,11 +760,11 @@ function renderLobby() {
         </div>
         ${isAdmin?`<span onclick="removeParticipant('${esc(p.id)}')" style="cursor:pointer;color:#9CA3AF">×</span>`:''}
       </div>`).join('')}
-    </div>` : '<p class="muted">No participants yet — share the room code!</p>'}
+    </div>`:'<p class="muted">No participants yet — share the room code!</p>'}
     ${isAdmin?`<div class="divider"><div></div></div>
     <div class="aflex">
-      <button class="btn btn-gold" onclick="openM('m-start')" ${S.participants.length<2?'disabled':''}>🔨 Start Live Auction</button>
-      <button class="btn btn-out btn-sm" onclick="adminAPI('/api/admin/phase',{phase:'setup'}).then(()=>showToast('Back to setup'))">← Setup</button>
+      <button class="btn btn-gold" onclick="openM('m-start')" ${S.participants.length<1?'disabled':''}>🔨 Start Live Auction</button>
+      <button class="btn btn-out btn-sm" onclick="adminAPI('/phase',{phase:'setup'}).then(()=>showToast('Back to setup'))">← Setup</button>
     </div>`:''}
   </div>
   <div class="card">
@@ -600,7 +776,7 @@ function renderLobby() {
   </div>`;
 }
 
-async function removeParticipant(id){if(!confirm('Remove participant?'))return;await adminAPI('/api/admin/participants/remove',{participantId:id});}
+async function removeParticipant(id){ if(!confirm('Remove participant?'))return; await adminAPI('/participants/remove',{participantId:id}); }
 
 // ──────────────────────────────────────────────
 //  AUCTION
@@ -613,9 +789,9 @@ function renderAuction() {
   const pot     = S.golfers.reduce((s,g)=>s+(g.currentBid||0),0);
 
   let visible = [...S.golfers];
-  if (gFilter==='mine')  visible = visible.filter(g=>g.bidderIds?.includes(me?.id));
-  if (gFilter==='hot')   visible = [...visible].filter(g=>g.bidCount>0).sort((a,b)=>b.bidCount-a.bidCount);
-  if (gFilter==='unbid') visible = visible.filter(g=>!g.bidCount);
+  if(gFilter==='mine')  visible=visible.filter(g=>g.bidderIds?.includes(me?.id));
+  if(gFilter==='hot')   visible=[...visible].filter(g=>g.bidCount>0).sort((a,b)=>b.bidCount-a.bidCount);
+  if(gFilter==='unbid') visible=visible.filter(g=>!g.bidCount);
 
   return `
   <div id="timer-bar" class="${ended?'ended':''} ${S.auctionEndTime&&(new Date(S.auctionEndTime)-Date.now())<120000&&!ended?'urgent':''}">
@@ -656,26 +832,26 @@ function renderAuction() {
 
   ${isAdmin?`<div id="admin-panel" class="mt3"><div class="apl">⚙ Admin</div>
     <div class="aflex">
-      <button class="btn btn-green btn-sm" onclick="adminAPI('/api/admin/auction/extend',{minutes:5}).then(()=>showToast('+5 min added'))">+5 min</button>
-      <button class="btn btn-green btn-sm" onclick="adminAPI('/api/admin/auction/extend',{minutes:10}).then(()=>showToast('+10 min added'))">+10 min</button>
+      <button class="btn btn-green btn-sm" onclick="adminAPI('/auction/extend',{minutes:5}).then(()=>showToast('+5 min added'))">+5 min</button>
+      <button class="btn btn-green btn-sm" onclick="adminAPI('/auction/extend',{minutes:10}).then(()=>showToast('+10 min added'))">+10 min</button>
       <button class="btn btn-danger btn-sm" onclick="doFinalize()">🔨 End Now</button>
     </div>
   </div>`:''}`;
 }
 
 function renderCard(g, ended, atMax) {
-  const isLead  = me && g.currentBidderId === me.id;
-  const wasOB   = me && g.bidderIds?.includes(me.id) && !isLead;
-  const minBid  = g.currentBid > 0 ? g.currentBid + S.settings.minBidIncrement : S.settings.startingBid;
-  const canBid  = !ended && !isLead && (!atMax || isLead);
+  const isLead = me && g.currentBidderId === me.id;
+  const wasOB  = me && g.bidderIds?.includes(me.id) && !isLead;
+  const minBid = g.currentBid > 0 ? g.currentBid + S.settings.minBidIncrement : S.settings.startingBid;
+  const canBid = !ended && !isLead && (!atMax || isLead);
 
   let cls = 'gc' + (isLead?' leading':wasOB?' outbid':ended?' ended':'');
-  let badge = isLead ? `<div class="gc-badge lead">Leading</div>` : wasOB ? `<div class="gc-badge outbid">Outbid</div>` : '';
-  let btnCls = 'gc-bid-btn ', btnTxt = '';
-  if (ended)                 { btnCls+='ended';  btnTxt='Auction Ended'; }
-  else if (isLead)           { btnCls+='lead';   btnTxt='✓ You\'re Leading'; }
-  else if (atMax&&!isLead)   { btnCls+='atmax';  btnTxt=`Max ${S.settings.maxGolfersPerPerson} reached`; }
-  else                       { btnCls+='can';    btnTxt=`Bid ${fmt$(minBid)}+`; }
+  let badge = isLead?`<div class="gc-badge lead">Leading</div>`:wasOB?`<div class="gc-badge outbid">Outbid</div>`:'';
+  let btnCls='gc-bid-btn ', btnTxt='';
+  if(ended)              { btnCls+='ended'; btnTxt='Auction Ended'; }
+  else if(isLead)        { btnCls+='lead';  btnTxt='✓ You\'re Leading'; }
+  else if(atMax&&!isLead){ btnCls+='atmax'; btnTxt=`Max ${S.settings.maxGolfersPerPerson} reached`; }
+  else                   { btnCls+='can';   btnTxt=`Bid ${fmt$(minBid)}+`; }
 
   return `<div class="${cls}" id="gc-${g.id}">
     ${badge}
@@ -690,52 +866,52 @@ function renderCard(g, ended, atMax) {
 }
 
 function filterSearch() {
-  const q = (document.getElementById('g-search')?.value||'').toLowerCase();
+  const q=(document.getElementById('g-search')?.value||'').toLowerCase();
   document.querySelectorAll('.gc').forEach(el=>{
-    el.style.display = (el.querySelector('.gname')?.textContent||'').toLowerCase().includes(q)?'':'none';
+    el.style.display=(el.querySelector('.gname')?.textContent||'').toLowerCase().includes(q)?'':'none';
   });
 }
 
 function openBidModal(id) {
-  const g = S.golfers.find(g=>g.id===id);
+  const g=S.golfers.find(g=>g.id===id);
   if(!g||(!S.auctionEndTime||Date.now()>new Date(S.auctionEndTime).getTime())) return;
-  bidGolfId = id;
-  const minBid = g.currentBid > 0 ? g.currentBid+S.settings.minBidIncrement : S.settings.startingBid;
-  document.getElementById('bid-golfer-name').textContent = g.name;
-  document.getElementById('bid-current-info').textContent = g.currentBid>0
-    ? `Current: ${fmt$(g.currentBid)} by ${g.currentBidderName} (${g.bidCount} bids)`
-    : `No bids yet — opening at ${fmt$(S.settings.startingBid)}`;
-  document.getElementById('bid-amt').value = minBid;
-  document.getElementById('bid-amt').min   = minBid;
-  document.getElementById('bid-error').textContent = '';
-  const inc = S.settings.minBidIncrement;
-  const amounts = [minBid, minBid+inc, minBid+inc*2, minBid+inc*5, minBid+inc*10].filter((v,i,a)=>a.indexOf(v)===i).slice(0,5);
-  document.getElementById('quick-bids').innerHTML = amounts.map(a=>`<button class="qb" onclick="document.getElementById('bid-amt').value=${a}">${fmt$(a)}</button>`).join('');
+  bidGolfId=id;
+  const minBid=g.currentBid>0?g.currentBid+S.settings.minBidIncrement:S.settings.startingBid;
+  document.getElementById('bid-golfer-name').textContent=g.name;
+  document.getElementById('bid-current-info').textContent=g.currentBid>0
+    ?`Current: ${fmt$(g.currentBid)} by ${g.currentBidderName} (${g.bidCount} bids)`
+    :`No bids yet — opening at ${fmt$(S.settings.startingBid)}`;
+  document.getElementById('bid-amt').value=minBid;
+  document.getElementById('bid-amt').min=minBid;
+  document.getElementById('bid-error').textContent='';
+  const inc=S.settings.minBidIncrement;
+  const amounts=[minBid,minBid+inc,minBid+inc*2,minBid+inc*5,minBid+inc*10].filter((v,i,a)=>a.indexOf(v)===i).slice(0,5);
+  document.getElementById('quick-bids').innerHTML=amounts.map(a=>`<button class="qb" onclick="document.getElementById('bid-amt').value=${a}">${fmt$(a)}</button>`).join('');
   openM('m-bid');
-  setTimeout(()=>document.getElementById('bid-amt')?.focus(), 60);
+  setTimeout(()=>document.getElementById('bid-amt')?.focus(),60);
 }
 
 async function submitBid() {
-  const amt = +document.getElementById('bid-amt').value;
-  const err = document.getElementById('bid-error');
-  err.textContent = '';
+  const amt=+document.getElementById('bid-amt').value;
+  const err=document.getElementById('bid-error');
+  err.textContent='';
   if(!amt||amt<1){err.textContent='Enter a valid amount.';return;}
   if(!me){err.textContent='Not logged in.';return;}
-  const res  = await fetch('/api/bid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({participantId:me.id,golferId:bidGolfId,amount:amt})});
-  const data = await res.json();
+  const res=await fetch(`/api/room/${myRoomCode}/bid`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({participantId:me.id,golferId:bidGolfId,amount:amt})});
+  const data=await res.json();
   if(!data.ok){err.textContent=data.error||'Bid failed.';return;}
   closeM('m-bid');
   showToast(`Bid of ${fmt$(amt)} placed on ${S.golfers.find(g=>g.id===bidGolfId)?.name||'golfer'}!`);
 }
 
-async function doFinalize(){if(!confirm('End auction now and lock in all results?'))return;await adminAPI('/api/admin/auction/finalize',{});showToast('Auction finalized!');}
-async function startAuction(){const dur=+document.getElementById('m-dur').value;await adminAPI('/api/admin/auction/start',{durationMinutes:dur});closeM('m-start');showToast(`Auction started! ${dur} minutes on the clock.`);}
+async function doFinalize(){ if(!confirm('End auction now and lock in all results?'))return; await adminAPI('/auction/finalize',{}); showToast('Auction finalized!'); }
+async function startAuction(){ const dur=+document.getElementById('m-dur').value; await adminAPI('/auction/start',{durationMinutes:dur}); closeM('m-start'); showToast(`Auction started! ${dur} minutes on the clock.`); }
 
 // ──────────────────────────────────────────────
 //  SCORING
 // ──────────────────────────────────────────────
 function renderScoring() {
-  const pot=S.golfers.reduce((s,g)=>s+(g.bid||0),0), charity=pot*S.settings.charityPercent/100, prize=pot-charity;
+  const pot=S.golfers.reduce((s,g)=>s+(g.bid||0),0),charity=pot*S.settings.charityPercent/100,prize=pot-charity;
   const lastUp=S.lastScoreUpdate?new Date(S.lastScoreUpdate).toLocaleTimeString():'Never';
   return `
   <div style="text-align:center;margin-bottom:4px"><h2 style="font-size:1.35rem;color:var(--green)">⛳ Live Leaderboard</h2></div>
@@ -743,7 +919,7 @@ function renderScoring() {
   ${isAdmin?`<div id="admin-panel"><div class="apl">⚙ Admin</div><div class="aflex">
     <button class="btn btn-green btn-sm" id="refresh-btn" onclick="refreshScores()">↻ Refresh Scores</button>
     <button class="btn btn-out btn-sm" onclick="openScoreModal()">✎ Manual Entry</button>
-    <button class="btn btn-out btn-sm" onclick="adminAPI('/api/admin/phase',{phase:'final'}).then(()=>showToast('Finalized!'))">🏆 Finalize</button>
+    <button class="btn btn-out btn-sm" onclick="adminAPI('/phase',{phase:'final'}).then(()=>showToast('Finalized!'))">🏆 Finalize</button>
   </div></div>`:''}
   <div class="tabs">
     <button class="tab ${sTab==='standings'?'on':''}" onclick="sTab='standings';renderPhase()">🏆 Owner Standings</button>
@@ -768,7 +944,7 @@ function buildOwners() {
 }
 
 function renderOwners(prize,charity) {
-  const owners=buildOwners(), medals=['🥇','🥈','🥉'];
+  const owners=buildOwners(),medals=['🥇','🥈','🥉'];
   const isMe=o=>me&&(o.ownerId===me.id||o.owner===me.name);
   return `<div class="g2" style="margin-bottom:16px">
     <div class="card"><div class="ctitle">🏆 Projected Payouts</div>
@@ -824,8 +1000,8 @@ function renderLB() {
 async function refreshScores(){
   const btn=document.getElementById('refresh-btn');
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Refreshing…';}
-  const r=await adminAPI('/api/admin/scores/refresh',{});
-  if(r.ok)showToast(`✓ Scores updated for ${r.count} golfers`);
+  const r=await adminAPI('/scores/refresh',{});
+  if(r.ok) showToast(`✓ Scores updated for ${r.count} golfers`);
   else showToast(r.message||'Could not fetch — try manual entry',true);
 }
 
@@ -848,7 +1024,7 @@ async function saveManualScores(){
     byName[inp.dataset.name][inp.dataset.field]=v;
   }
   const scores=Object.values(byName); if(!scores.length){showToast('No scores entered',true);return;}
-  await adminAPI('/api/admin/scores/manual',{scores});
+  await adminAPI('/scores/manual',{scores});
   closeM('m-scores');
   showToast(`✓ Saved ${scores.length} scores`);
 }
@@ -857,8 +1033,8 @@ async function saveManualScores(){
 //  FINAL
 // ──────────────────────────────────────────────
 function renderFinal(){
-  const pot=S.golfers.reduce((s,g)=>s+(g.bid||0),0), charity=pot*S.settings.charityPercent/100, prize=pot-charity;
-  const owners=buildOwners(), medals=['🥇','🥈','🥉'], winner=owners[0];
+  const pot=S.golfers.reduce((s,g)=>s+(g.bid||0),0),charity=pot*S.settings.charityPercent/100,prize=pot-charity;
+  const owners=buildOwners(),medals=['🥇','🥈','🥉'],winner=owners[0];
   return `<div class="winner-banner">
     <h2>🏆 Tournament Complete!</h2>
     ${winner?`<div class="ws">Congratulations to <strong>${esc(winner.owner)}</strong>, owner of <strong>${esc(winner.best?.name||'')}</strong>!</div>`:''}
@@ -888,7 +1064,7 @@ function renderFinal(){
     </tbody></table></div>
   </div>
   ${isAdmin?`<div class="card"><div class="ctitle">⚙ Admin</div><div class="aflex">
-    <button class="btn btn-out" onclick="adminAPI('/api/admin/phase',{phase:'scoring'}).then(()=>showToast('Back to scoring'))">← Back to Scoring</button>
+    <button class="btn btn-out" onclick="adminAPI('/phase',{phase:'scoring'}).then(()=>showToast('Back to scoring'))">← Back to Scoring</button>
     <button class="btn btn-danger" onclick="resetPool()">⟳ Full Reset</button>
   </div></div>`:''}`;
 }
@@ -896,42 +1072,81 @@ function renderFinal(){
 // ──────────────────────────────────────────────
 //  Admin helpers
 // ──────────────────────────────────────────────
-function toggleAdmin(){if(isAdmin){isAdmin=false;adminPw='';renderHeader();renderPhase();showToast('Logged out');}else openAdminLogin();}
-function openAdminLogin(){openM('m-login');setTimeout(()=>document.getElementById('m-pw')?.focus(),60);}
+function toggleAdmin(){
+  if(isAdmin){ isAdmin=false; adminPw=''; myRoomCode=null; S=null; clearSession(); showJoin(); showToast('Logged out'); }
+  else openAdminLogin();
+}
+function openAdminLogin(){ openM('m-login'); setTimeout(()=>document.getElementById('m-pw')?.focus(),60); }
 async function doAdminLogin(){
   const pw=document.getElementById('m-pw').value;
   if(!pw){showToast('Enter a password.',true);return;}
   try{
     const r=await fetch('/api/admin/verify',{headers:{'x-admin-password':pw}});
     const d=await r.json();
-    if(d.ok){adminPw=pw;isAdmin=true;if(!me)me={id:'__admin__',name:'Admin',email:''};closeM('m-login');document.getElementById('m-pw').value='';showMain();showToast('Admin mode ✓');}
-    else{showToast('Wrong password.',true);document.getElementById('m-pw').select();}
-  }catch(e){showToast('Cannot reach server. Make sure it is running (node server.js) and try again.',true);}
+    if(d.ok){
+      adminPw=pw; isAdmin=true;
+      closeM('m-login'); document.getElementById('m-pw').value='';
+      showToast('Admin mode ✓');
+      // Fetch all rooms and show dashboard
+      await refreshAdminRooms();
+      showRoomsDashboard();
+    } else { showToast('Wrong password.',true); document.getElementById('m-pw').select(); }
+  } catch(e){ showToast('Cannot reach server. Make sure it is running (node server.js) and try again.',true); }
 }
-async function adminAPI(ep,data={}){
-  try{const r=await fetch(ep,{method:'POST',headers:{'Content-Type':'application/json','x-admin-password':adminPw},body:JSON.stringify(data)});return r.json();}
-  catch{showToast('Network error',true);return{ok:false};}
+
+// adminAPI: scoped to the currently active room
+async function adminAPI(endpoint, data={}) {
+  const code = myRoomCode;
+  if(!code){ showToast('No active room',true); return {ok:false}; }
+  try {
+    const r=await fetch(`/api/admin/rooms/${code}${endpoint}`,{method:'POST',headers:{'Content-Type':'application/json','x-admin-password':adminPw},body:JSON.stringify(data)});
+    return r.json();
+  } catch { showToast('Network error',true); return {ok:false}; }
 }
-async function resetPool(){if(!confirm('⚠️ Reset everything?'))return;if(!confirm('Are you absolutely sure?'))return;await adminAPI('/api/admin/reset',{});showToast('Pool reset.');}
+
+async function resetPool(){
+  if(!confirm('⚠️ Reset everything in this room?'))return;
+  if(!confirm('Are you absolutely sure? All bids and participants will be cleared.'))return;
+  await adminAPI('/reset',{});
+  showToast('Room reset.');
+}
 
 // ──────────────────────────────────────────────
 //  Modal helpers
 // ──────────────────────────────────────────────
-function openM(id){document.getElementById(id).classList.add('open');}
-function closeM(id){document.getElementById(id).classList.remove('open');}
+function openM(id){ document.getElementById(id).classList.add('open'); }
+function closeM(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.backdrop').forEach(el=>{
-  el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');});
+  el.addEventListener('click',e=>{ if(e.target===el) el.classList.remove('open'); });
 });
 
 // ──────────────────────────────────────────────
 //  Toast
 // ──────────────────────────────────────────────
 let toastT;
-function showToast(msg,isErr=false){
-  const el=document.getElementById('toast');
-  el.textContent=msg;el.className=isErr?'err':'';el.style.display='block';
-  clearTimeout(toastT);toastT=setTimeout(()=>el.style.display='none',3500);
+function showToast(msg, err=false) {
+  const div=document.createElement('div');
+  div.className='toast-item'+(err?' err':'');
+  div.textContent=msg;
+  document.getElementById('toast').appendChild(div);
+  setTimeout(()=>div.classList.add('show'),10);
+  setTimeout(()=>{ div.classList.remove('show'); setTimeout(()=>div.remove(),300); },3500);
 }
+
+// ──────────────────────────────────────────────
+//  Init: on page load, reconnect saved session
+// ──────────────────────────────────────────────
+(async function init() {
+  if (myRoomCode && me) {
+    // Restore session: subscribe to socket room and load state via HTTP
+    subscribeRoom(myRoomCode);
+    try {
+      const st = await fetch(`/api/room/${myRoomCode}/state`).then(r=>r.json());
+      if (st && st.code) { S = st; showMain(); return; }
+    } catch {}
+  }
+  showJoin();
+})();
 </script>
 </body>
 </html>

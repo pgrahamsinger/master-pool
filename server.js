@@ -18,25 +18,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function genRoomCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous chars
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
 
 function newGolfer(g) {
   return {
     ...g,
-    owner:              null,   // set after auction finalizes
-    ownerId:            null,
-    bid:                null,   // final price after auction
-    currentBid:         0,      // live bid during auction
-    currentBidderId:    null,
-    currentBidderName:  null,
-    bidCount:           0,
-    bidderIds:          [],     // everyone who has placed a bid
+    owner: null, ownerId: null, bid: null,
+    currentBid: 0, currentBidderId: null, currentBidderName: null,
+    bidCount: 0, bidderIds: [],
   };
 }
 
-// ─── Default field ────────────────────────────────────────────────────────────
+// ─── Default golfer field ─────────────────────────────────────────────────────
 const DEFAULT_GOLFERS = [
   { id:  1, name: "Scottie Scheffler",   ranking:  1 },
   { id:  2, name: "Rory McIlroy",        ranking:  2 },
@@ -95,62 +90,108 @@ const DEFAULT_GOLFERS = [
   { id: 55, name: "Jose Maria Olazabal", ranking: 55 },
 ].map(newGolfer);
 
-const DEFAULT_STATE = {
-  phase:    'setup',             // 'setup' | 'lobby' | 'auction' | 'scoring' | 'final'
-  roomCode: genRoomCode(),
-  settings: {
-    poolName:            "Graham's Masters Pool 2026",
-    adminPassword:       'masters2026',
-    charityPercent:      20,
-    payoutSplit:         [60, 25, 15],
-    maxGolfersPerPerson: 3,
-    minBidIncrement:     5,
-    antiSnipeMinutes:    2,
-    startingBid:         5,
-  },
-  participants:    [],           // { id, name, email, joinedAt }
-  golfers:         DEFAULT_GOLFERS,
-  auctionEndTime:  null,         // ISO timestamp
-  scores:          {},           // { "Player Name": { position, totalScore, rounds[], status } }
-  lastScoreUpdate: null,
-};
+// ─── Default settings factory ─────────────────────────────────────────────────
+function defaultSettings(overrides = {}) {
+  return {
+    poolName:              "Graham's Masters Pool 2026",
+    charityPercent:        20,
+    payoutSplit:           [60, 25, 15],
+    maxGolfersPerPerson:   3,
+    minBidIncrement:       5,
+    antiSnipeMinutes:      2,
+    startingBid:           5,
+    defaultAuctionMinutes: 30,    // pre-fills the "Start Auction" dialog
+    scheduledStartTime:    null,  // ISO string — auto-start auction at this time
+    entryFee:              0,     // $ per participant (display / tracking only)
+    ...overrides,
+  };
+}
+
+// ─── Room factory ─────────────────────────────────────────────────────────────
+function createRoom(settingsOverrides = {}) {
+  const code = genRoomCode();
+  return {
+    code,
+    phase:           'setup',
+    settings:        defaultSettings(settingsOverrides),
+    participants:    [],
+    golfers:         JSON.parse(JSON.stringify(DEFAULT_GOLFERS)),
+    auctionEndTime:  null,
+    scores:          {},
+    lastScoreUpdate: null,
+    createdAt:       new Date().toISOString(),
+  };
+}
+
+// ─── Global admin password + rooms store ─────────────────────────────────────
+let adminPassword = 'masters2026';
+let rooms         = {};   // { [roomCode]: roomState }
 
 // ─── State persistence ────────────────────────────────────────────────────────
 const STATE_FILE = path.join(__dirname, 'state.json');
-let state;
 
-if (fs.existsSync(STATE_FILE)) {
-  try {
-    const loaded = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
-    // Merge defaults so new fields are picked up after updates
-    state = {
-      ...DEFAULT_STATE,
-      ...loaded,
-      settings: { ...DEFAULT_STATE.settings, ...loaded.settings },
-    };
-    // Ensure golfers have bid fields (migration)
-    state.golfers = state.golfers.map(g => ({
-      currentBid: 0, currentBidderId: null, currentBidderName: null,
-      bidCount: 0, bidderIds: [], owner: null, ownerId: null, bid: null,
-      ...g,
-    }));
-    console.log('✓ Loaded saved state');
-  } catch (e) {
-    state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-    console.log('⚠ Could not load state – starting fresh');
+(function loadState() {
+  if (!fs.existsSync(STATE_FILE)) {
+    const r = createRoom();
+    rooms[r.code] = r;
+    return;
   }
-} else {
-  state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-}
+  try {
+    const d = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+    adminPassword = d.adminPassword || adminPassword;
+
+    if (d.rooms && typeof d.rooms === 'object') {
+      // New multi-room format
+      for (const [code, room] of Object.entries(d.rooms)) {
+        room.settings = { ...defaultSettings(), ...room.settings };
+        room.golfers  = (room.golfers || []).map(g => ({
+          currentBid: 0, currentBidderId: null, currentBidderName: null,
+          bidCount: 0, bidderIds: [], owner: null, ownerId: null, bid: null, ...g,
+        }));
+        rooms[code] = room;
+      }
+    } else if (d.phase !== undefined) {
+      // Migrate old single-room format
+      const r         = createRoom();
+      r.code          = d.roomCode        || r.code;
+      r.phase         = d.phase           || 'setup';
+      r.settings      = { ...defaultSettings(), ...d.settings };
+      r.participants  = d.participants    || [];
+      r.golfers       = (d.golfers || []).map(g => ({
+        currentBid: 0, currentBidderId: null, currentBidderName: null,
+        bidCount: 0, bidderIds: [], owner: null, ownerId: null, bid: null, ...g,
+      }));
+      r.auctionEndTime  = d.auctionEndTime  || null;
+      r.scores          = d.scores          || {};
+      r.lastScoreUpdate = d.lastScoreUpdate || null;
+      // Old format stored adminPassword inside settings
+      if (d.settings && d.settings.adminPassword) adminPassword = d.settings.adminPassword;
+      rooms[r.code] = r;
+    }
+
+    if (!Object.keys(rooms).length) {
+      const r = createRoom();
+      rooms[r.code] = r;
+    }
+    console.log(`✓ Loaded ${Object.keys(rooms).length} room(s)`);
+  } catch (e) {
+    console.log('⚠ Could not load state – starting fresh');
+    const r = createRoom();
+    rooms[r.code] = r;
+  }
+})();
 
 const saveState = () => {
-  try { fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2)); } catch {}
+  try { fs.writeFileSync(STATE_FILE, JSON.stringify({ adminPassword, rooms }, null, 2)); } catch {}
 };
-const broadcast = () => io.emit('state_update', state);
+
+const broadcastRoom = (code) => {
+  if (rooms[code]) io.to(`room:${code}`).emit('state_update', rooms[code]);
+};
 
 // ─── Auction finalization ─────────────────────────────────────────────────────
-function finalizeAuction() {
-  for (const g of state.golfers) {
+function finalizeAuction(room) {
+  for (const g of room.golfers) {
     if (g.currentBidderId) {
       g.owner   = g.currentBidderName;
       g.ownerId = g.currentBidderId;
@@ -159,55 +200,114 @@ function finalizeAuction() {
       g.owner = null; g.ownerId = null; g.bid = null;
     }
   }
-  state.phase = 'scoring';
-  console.log('Auction finalized at', new Date().toLocaleString());
+  room.phase = 'scoring';
+  console.log(`Room ${room.code} auction finalized at`, new Date().toLocaleString());
 }
 
-// Check every 5s if auction timer has expired
+// Check every 5 s: auto-finalize expired auctions, auto-start scheduled ones
 setInterval(() => {
-  if (state.phase === 'auction' && state.auctionEndTime) {
-    if (Date.now() > new Date(state.auctionEndTime).getTime() + 1000) {
-      finalizeAuction();
-      saveState();
-      broadcast();
+  let dirty = false;
+  for (const room of Object.values(rooms)) {
+    if (room.phase === 'auction' && room.auctionEndTime &&
+        Date.now() > new Date(room.auctionEndTime).getTime() + 1000) {
+      finalizeAuction(room);
+      dirty = true;
+      broadcastRoom(room.code);
+    }
+    if (['setup', 'lobby'].includes(room.phase) && room.settings.scheduledStartTime) {
+      const t = new Date(room.settings.scheduledStartTime).getTime();
+      if (!isNaN(t) && Date.now() > t) {
+        const dur = Number(room.settings.defaultAuctionMinutes) || 30;
+        room.auctionEndTime = new Date(Date.now() + dur * 60000).toISOString();
+        room.phase = 'auction';
+        room.settings.scheduledStartTime = null;
+        dirty = true;
+        broadcastRoom(room.code);
+      }
     }
   }
+  if (dirty) saveState();
 }, 5000);
 
-// ─── Auth middleware ───────────────────────────────────────────────────────────
+// ─── Auth ─────────────────────────────────────────────────────────────────────
 const requireAdmin = (req, res, next) => {
-  if (req.headers['x-admin-password'] !== state.settings.adminPassword) {
+  if (req.headers['x-admin-password'] !== adminPassword)
     return res.status(401).json({ error: 'Invalid admin password' });
-  }
   next();
 };
 
-// ─── Public routes ────────────────────────────────────────────────────────────
-app.get('/api/state', (_req, res) => res.json(state));
+const getRoom = (code, res) => {
+  const room = rooms[(code || '').trim().toUpperCase()];
+  if (!room) { res.status(404).json({ error: 'Room not found.' }); return null; }
+  return room;
+};
 
-app.get('/api/admin/verify', (req, res) => {
-  res.json({ ok: req.headers['x-admin-password'] === state.settings.adminPassword });
+// ─── Public routes ────────────────────────────────────────────────────────────
+app.get('/api/admin/verify', (req, res) =>
+  res.json({ ok: req.headers['x-admin-password'] === adminPassword }));
+
+app.get('/api/admin/rooms', requireAdmin, (_req, res) =>
+  res.json({
+    ok: true,
+    rooms: Object.values(rooms).map(r => ({
+      code:               r.code,
+      poolName:           r.settings.poolName,
+      phase:              r.phase,
+      participants:       r.participants.length,
+      createdAt:          r.createdAt,
+      auctionEndTime:     r.auctionEndTime,
+      scheduledStartTime: r.settings.scheduledStartTime,
+      entryFee:           r.settings.entryFee,
+    })),
+  }));
+
+app.post('/api/admin/rooms/create', requireAdmin, (req, res) => {
+  const room = createRoom(req.body.settings || {});
+  rooms[room.code] = room;
+  saveState();
+  res.json({ ok: true, code: room.code, poolName: room.settings.poolName });
 });
 
-// Join pool with room code
+app.post('/api/admin/rooms/:code/delete', requireAdmin, (req, res) => {
+  const code = req.params.code.toUpperCase();
+  if (!rooms[code]) return res.status(404).json({ error: 'Room not found' });
+  delete rooms[code];
+  saveState();
+  res.json({ ok: true });
+});
+
+// Change global admin password
+app.post('/api/admin/password', requireAdmin, (req, res) => {
+  const { newPassword } = req.body || {};
+  if (!newPassword || String(newPassword).length < 6)
+    return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+  adminPassword = String(newPassword);
+  saveState();
+  res.json({ ok: true });
+});
+
+// Get room state (participants use this to reconnect)
+app.get('/api/room/:code/state', (req, res) => {
+  const room = getRoom(req.params.code, res);
+  if (!room) return;
+  res.json(room);
+});
+
+// Join with room code
 app.post('/api/join', (req, res) => {
   const { roomCode, name, email } = req.body || {};
-
-  if (!roomCode || !name || !email) {
+  if (!roomCode || !name || !email)
     return res.status(400).json({ error: 'Room code, name, and email are required.' });
-  }
-  if (roomCode.trim().toUpperCase() !== state.roomCode.toUpperCase()) {
+  const room = rooms[roomCode.trim().toUpperCase()];
+  if (!room)
     return res.status(401).json({ error: 'Invalid room code. Check with your pool admin.' });
-  }
-  if (!['lobby', 'auction', 'scoring', 'final'].includes(state.phase)) {
+  if (!['lobby', 'auction', 'scoring', 'final'].includes(room.phase))
     return res.status(400).json({ error: 'Registration is not open yet.' });
-  }
 
   const normEmail = email.trim().toLowerCase();
-  const existing  = state.participants.find(p => p.email === normEmail);
-  if (existing) {
-    return res.json({ ok: true, participant: existing, rejoin: true });
-  }
+  const existing  = room.participants.find(p => p.email === normEmail);
+  if (existing)
+    return res.json({ ok: true, participant: existing, roomCode: room.code, rejoin: true });
 
   const participant = {
     id:       crypto.randomUUID(),
@@ -215,161 +315,149 @@ app.post('/api/join', (req, res) => {
     email:    normEmail,
     joinedAt: new Date().toISOString(),
   };
-  state.participants.push(participant);
+  room.participants.push(participant);
   saveState();
-  broadcast();
-  res.json({ ok: true, participant });
+  broadcastRoom(room.code);
+  res.json({ ok: true, participant, roomCode: room.code });
 });
 
 // Place a bid
-app.post('/api/bid', (req, res) => {
+app.post('/api/room/:code/bid', (req, res) => {
+  const room = getRoom(req.params.code, res); if (!room) return;
   const { participantId, golferId, amount } = req.body || {};
-
-  if (!participantId || !golferId || amount === undefined) {
+  if (!participantId || !golferId || amount === undefined)
     return res.status(400).json({ error: 'participantId, golferId, and amount are required.' });
-  }
-  const participant = state.participants.find(p => p.id === participantId);
+
+  const participant = room.participants.find(p => p.id === participantId);
   if (!participant) return res.status(401).json({ error: 'Participant not found. Please re-join.' });
-
-  if (state.phase !== 'auction') {
-    return res.status(400).json({ error: 'Auction is not currently active.' });
-  }
-  if (state.auctionEndTime && Date.now() > new Date(state.auctionEndTime).getTime()) {
+  if (room.phase !== 'auction') return res.status(400).json({ error: 'Auction is not currently active.' });
+  if (room.auctionEndTime && Date.now() > new Date(room.auctionEndTime).getTime())
     return res.status(400).json({ error: 'The auction has ended.' });
-  }
 
-  const golfer = state.golfers.find(g => g.id === golferId);
+  const golfer = room.golfers.find(g => g.id === golferId);
   if (!golfer) return res.status(404).json({ error: 'Golfer not found.' });
-
-  if (golfer.currentBidderId === participantId) {
+  if (golfer.currentBidderId === participantId)
     return res.status(400).json({ error: 'You are already the highest bidder on this golfer.' });
-  }
 
   const minBid = golfer.currentBid > 0
-    ? golfer.currentBid + state.settings.minBidIncrement
-    : state.settings.startingBid;
-
-  if (Number(amount) < minBid) {
+    ? golfer.currentBid + room.settings.minBidIncrement
+    : room.settings.startingBid;
+  if (Number(amount) < minBid)
     return res.status(400).json({ error: `Minimum bid is $${minBid}.` });
-  }
 
-  // Enforce max golfers per person (count golfers this participant is currently leading, excluding this one)
-  const leading = state.golfers.filter(g => g.currentBidderId === participantId && g.id !== golferId).length;
-  if (leading >= state.settings.maxGolfersPerPerson) {
+  const leading = room.golfers.filter(g => g.currentBidderId === participantId && g.id !== golferId).length;
+  if (leading >= room.settings.maxGolfersPerPerson)
     return res.status(400).json({
-      error: `You're already leading on ${state.settings.maxGolfersPerPerson} golfers (the maximum). You must be outbid on one before bidding on another.`,
+      error: `You're already leading on ${room.settings.maxGolfersPerPerson} golfers (the maximum). You must be outbid on one before bidding on another.`,
     });
-  }
 
-  // Anti-snipe: if bid comes in within antiSnipeMinutes of end, extend the timer
-  if (state.auctionEndTime) {
-    const remaining   = new Date(state.auctionEndTime).getTime() - Date.now();
-    const antiSnipeMs = state.settings.antiSnipeMinutes * 60 * 1000;
+  // Anti-snipe: extend timer if bid comes in close to the end
+  if (room.auctionEndTime) {
+    const remaining   = new Date(room.auctionEndTime).getTime() - Date.now();
+    const antiSnipeMs = room.settings.antiSnipeMinutes * 60 * 1000;
     if (remaining > 0 && remaining < antiSnipeMs) {
-      state.auctionEndTime = new Date(Date.now() + antiSnipeMs).toISOString();
+      room.auctionEndTime = new Date(Date.now() + antiSnipeMs).toISOString();
     }
   }
 
-  // Record bid
   golfer.currentBid        = Number(amount);
   golfer.currentBidderId   = participantId;
   golfer.currentBidderName = participant.name;
   golfer.bidCount          = (golfer.bidCount || 0) + 1;
-  if (!golfer.bidderIds.includes(participantId)) {
-    golfer.bidderIds.push(participantId);
-  }
+  if (!golfer.bidderIds.includes(participantId)) golfer.bidderIds.push(participantId);
 
   saveState();
-  broadcast();
+  broadcastRoom(room.code);
   res.json({ ok: true });
 });
 
-// ─── Admin routes ─────────────────────────────────────────────────────────────
-app.post('/api/admin/settings', requireAdmin, (req, res) => {
-  const { poolName, charityPercent, payoutSplit, newAdminPassword,
-          maxGolfersPerPerson, minBidIncrement, antiSnipeMinutes, startingBid } = req.body;
-  if (poolName             !== undefined) state.settings.poolName             = poolName;
-  if (charityPercent       !== undefined) state.settings.charityPercent       = Number(charityPercent);
-  if (payoutSplit          !== undefined) state.settings.payoutSplit          = payoutSplit;
-  if (newAdminPassword     !== undefined) state.settings.adminPassword        = newAdminPassword;
-  if (maxGolfersPerPerson  !== undefined) state.settings.maxGolfersPerPerson  = Number(maxGolfersPerPerson);
-  if (minBidIncrement      !== undefined) state.settings.minBidIncrement      = Number(minBidIncrement);
-  if (antiSnipeMinutes     !== undefined) state.settings.antiSnipeMinutes     = Number(antiSnipeMinutes);
-  if (startingBid          !== undefined) state.settings.startingBid          = Number(startingBid);
-  saveState(); broadcast();
+// ─── Admin room routes (scoped helper) ───────────────────────────────────────
+const ra = (suffix, fn) =>
+  app.post(`/api/admin/rooms/:code${suffix}`, requireAdmin, (req, res) => {
+    const room = getRoom(req.params.code, res); if (!room) return;
+    fn(req, res, room);
+  });
+
+ra('/settings', (req, res, room) => {
+  const fields = ['poolName','charityPercent','payoutSplit','maxGolfersPerPerson',
+                  'minBidIncrement','antiSnipeMinutes','startingBid',
+                  'defaultAuctionMinutes','scheduledStartTime','entryFee'];
+  fields.forEach(k => { if (req.body[k] !== undefined) room.settings[k] = req.body[k]; });
+  saveState(); broadcastRoom(room.code);
   res.json({ ok: true });
 });
 
-app.post('/api/admin/golfers', requireAdmin, (req, res) => {
-  state.golfers = (req.body.golfers || []).map(g => ({
+ra('/golfers', (req, res, room) => {
+  room.golfers = (req.body.golfers || []).map(g => ({
     currentBid: 0, currentBidderId: null, currentBidderName: null,
-    bidCount: 0, bidderIds: [], owner: null, ownerId: null, bid: null,
-    ...g,
+    bidCount: 0, bidderIds: [], owner: null, ownerId: null, bid: null, ...g,
   }));
-  saveState(); broadcast();
+  saveState(); broadcastRoom(room.code);
   res.json({ ok: true });
 });
 
-app.post('/api/admin/participants/remove', requireAdmin, (req, res) => {
-  state.participants = state.participants.filter(p => p.id !== req.body.participantId);
-  saveState(); broadcast();
+ra('/participants/remove', (req, res, room) => {
+  room.participants = room.participants.filter(p => p.id !== req.body.participantId);
+  saveState(); broadcastRoom(room.code);
   res.json({ ok: true });
 });
 
-app.post('/api/admin/phase', requireAdmin, (req, res) => {
-  state.phase = req.body.phase;
-  saveState(); broadcast();
+ra('/phase', (req, res, room) => {
+  room.phase = req.body.phase;
+  saveState(); broadcastRoom(room.code);
   res.json({ ok: true });
 });
 
-app.post('/api/admin/roomcode/regenerate', requireAdmin, (req, res) => {
-  state.roomCode = genRoomCode();
-  saveState(); broadcast();
-  res.json({ ok: true, roomCode: state.roomCode });
+ra('/roomcode/regenerate', (req, res, room) => {
+  const oldCode = room.code;
+  const newCode = genRoomCode();
+  room.code = newCode;
+  rooms[newCode] = room;
+  delete rooms[oldCode];
+  saveState();
+  broadcastRoom(newCode);
+  res.json({ ok: true, roomCode: newCode });
 });
 
-// Start live auction with a timed window
-app.post('/api/admin/auction/start', requireAdmin, (req, res) => {
-  const { durationMinutes = 30 } = req.body;
-  state.auctionEndTime = new Date(Date.now() + Number(durationMinutes) * 60 * 1000).toISOString();
-  state.phase = 'auction';
-  saveState(); broadcast();
-  res.json({ ok: true, auctionEndTime: state.auctionEndTime });
+ra('/auction/start', (req, res, room) => {
+  const dur = Number(req.body.durationMinutes) || room.settings.defaultAuctionMinutes || 30;
+  room.auctionEndTime = new Date(Date.now() + dur * 60000).toISOString();
+  room.phase = 'auction';
+  saveState(); broadcastRoom(room.code);
+  res.json({ ok: true, auctionEndTime: room.auctionEndTime });
 });
 
-// Extend auction timer
-app.post('/api/admin/auction/extend', requireAdmin, (req, res) => {
-  const { minutes = 5 } = req.body;
-  const base = state.auctionEndTime ? Math.max(Date.now(), new Date(state.auctionEndTime).getTime()) : Date.now();
-  state.auctionEndTime = new Date(base + Number(minutes) * 60 * 1000).toISOString();
-  saveState(); broadcast();
-  res.json({ ok: true, auctionEndTime: state.auctionEndTime });
+ra('/auction/extend', (req, res, room) => {
+  const base = room.auctionEndTime
+    ? Math.max(Date.now(), new Date(room.auctionEndTime).getTime())
+    : Date.now();
+  room.auctionEndTime = new Date(base + Number(req.body.minutes || 5) * 60000).toISOString();
+  saveState(); broadcastRoom(room.code);
+  res.json({ ok: true, auctionEndTime: room.auctionEndTime });
 });
 
-// End auction immediately + finalize
-app.post('/api/admin/auction/finalize', requireAdmin, (req, res) => {
-  finalizeAuction();
-  saveState(); broadcast();
+ra('/auction/finalize', (req, res, room) => {
+  finalizeAuction(room);
+  saveState(); broadcastRoom(room.code);
   res.json({ ok: true });
 });
 
-// Clear all bids (admin correction)
-app.post('/api/admin/auction/clearbid', requireAdmin, (req, res) => {
-  const golfer = state.golfers.find(g => g.id === req.body.golferId);
-  if (!golfer) return res.status(404).json({ error: 'Not found' });
-  golfer.currentBid = 0; golfer.currentBidderId = null;
-  golfer.currentBidderName = null; golfer.bidCount = 0; golfer.bidderIds = [];
-  saveState(); broadcast();
+ra('/auction/clearbid', (req, res, room) => {
+  const g = room.golfers.find(g => g.id === req.body.golferId);
+  if (!g) return res.status(404).json({ error: 'Not found' });
+  g.currentBid = 0; g.currentBidderId = null; g.currentBidderName = null;
+  g.bidCount = 0; g.bidderIds = [];
+  saveState(); broadcastRoom(room.code);
   res.json({ ok: true });
 });
 
-app.post('/api/admin/scores/refresh', requireAdmin, async (_req, res) => {
+ra('/scores/refresh', async (req, res, room) => {
   try {
     const scores = await fetchMastersScores();
-    if (scores && Object.keys(scores).length > 0) {
-      state.scores = scores;
-      state.lastScoreUpdate = new Date().toISOString();
-      saveState(); broadcast();
+    if (scores && Object.keys(scores).length) {
+      room.scores = scores;
+      room.lastScoreUpdate = new Date().toISOString();
+      saveState(); broadcastRoom(room.code);
       res.json({ ok: true, count: Object.keys(scores).length });
     } else {
       res.json({ ok: false, message: 'Tournament scores not available yet.' });
@@ -379,24 +467,26 @@ app.post('/api/admin/scores/refresh', requireAdmin, async (_req, res) => {
   }
 });
 
-app.post('/api/admin/scores/manual', requireAdmin, (req, res) => {
+ra('/scores/manual', (req, res, room) => {
   for (const u of (req.body.scores || [])) {
-    state.scores[u.name] = {
-      position: u.position || '--', totalScore: u.totalScore || 'E',
-      status: u.status || 'active', rounds: u.rounds || [],
+    room.scores[u.name] = {
+      position:   u.position   || '--',
+      totalScore: u.totalScore || 'E',
+      status:     u.status     || 'active',
+      rounds:     u.rounds     || [],
     };
   }
-  state.lastScoreUpdate = new Date().toISOString();
-  saveState(); broadcast();
+  room.lastScoreUpdate = new Date().toISOString();
+  saveState(); broadcastRoom(room.code);
   res.json({ ok: true });
 });
 
-app.post('/api/admin/reset', requireAdmin, (req, res) => {
-  const savedPw = state.settings.adminPassword;
-  state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-  state.settings.adminPassword = savedPw;
-  state.roomCode = genRoomCode();
-  saveState(); broadcast();
+ra('/reset', (req, res, room) => {
+  const { code, settings: { poolName } } = room;
+  const fresh = createRoom({ poolName });
+  fresh.code = code;
+  rooms[code] = fresh;
+  saveState(); broadcastRoom(code);
   res.json({ ok: true });
 });
 
@@ -406,9 +496,8 @@ function httpsGet(url) {
     httpsLib.get(url, {
       headers: { 'User-Agent': 'MastersPool/1.0', Accept: 'application/json' },
     }, (res) => {
-      if (res.statusCode === 301 || res.statusCode === 302) {
+      if (res.statusCode === 301 || res.statusCode === 302)
         return resolve(httpsGet(res.headers.location));
-      }
       let data = '';
       res.on('data', c => (data += c));
       res.on('end', () => { try { resolve(JSON.parse(data)); } catch { reject(new Error('Bad JSON')); } });
@@ -423,7 +512,6 @@ async function fetchMastersScores() {
                 || events.find(e => (e.shortName || '').toLowerCase().includes('masters'))
                 || events[0];
   if (!tourney) return null;
-
   const competitors = tourney.competitions?.[0]?.competitors || [];
   const scores = {};
   for (const c of competitors) {
@@ -442,7 +530,15 @@ async function fetchMastersScores() {
 
 // ─── Socket.io ────────────────────────────────────────────────────────────────
 io.on('connection', socket => {
-  socket.emit('state_update', state);
+  socket.on('join_room', (code) => {
+    if (!code) return;
+    const key = String(code).toUpperCase();
+    socket.join(`room:${key}`);
+    if (rooms[key]) socket.emit('state_update', rooms[key]);
+  });
+  socket.on('leave_room', (code) => {
+    if (code) socket.leave(`room:${String(code).toUpperCase()}`);
+  });
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
@@ -450,12 +546,12 @@ const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, '0.0.0.0', () => {
   const localIP = Object.values(os.networkInterfaces()).flat()
     .find(i => i?.family === 'IPv4' && !i.internal)?.address || 'localhost';
-
+  const codes = Object.keys(rooms).join(', ');
   console.log("\n🏌️  Graham's Masters Pool 2026");
   console.log('══════════════════════════════════════');
-  console.log(`  Local:     http://localhost:${PORT}`);
-  console.log(`  Network:   http://${localIP}:${PORT}`);
-  console.log(`  Room code: ${state.roomCode}`);
-  console.log(`  Admin pw:  ${state.settings.adminPassword}`);
+  console.log(`  Local:      http://localhost:${PORT}`);
+  console.log(`  Network:    http://${localIP}:${PORT}`);
+  console.log(`  Room(s):    ${codes}`);
+  console.log(`  Admin pw:   ${adminPassword}`);
   console.log('══════════════════════════════════════\n');
 });

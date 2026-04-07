@@ -473,17 +473,41 @@ function renderHeader() {
 // ──────────────────────────────────────────────
 //  Phase router
 // ──────────────────────────────────────────────
+function renderParticipantsCard() {
+  if (!isAdmin || !S) return '';
+  const ps = S.participants || [];
+  return `<div class="card" style="margin-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="ctitle" style="margin-bottom:0">👥 Registered Participants (${ps.length})</div>
+    </div>
+    ${ps.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px">
+      ${ps.map(p=>`<div style="display:flex;align-items:center;gap:6px;background:#F0FBF4;border:1px solid #86EFAC;border-radius:20px;padding:3px 10px 3px 5px">
+        <div style="width:22px;height:22px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.68rem;flex-shrink:0">${esc(p.name.charAt(0).toUpperCase())}</div>
+        <span style="font-size:0.78rem;font-weight:600;color:#065F46">${esc(p.name)}</span>
+        <span onclick="removeParticipant('${esc(p.id)}')" style="cursor:pointer;color:#9CA3AF;font-size:0.9rem;margin-left:1px" title="Remove">×</span>
+      </div>`).join('')}
+    </div>` : `<p class="muted" style="margin:0">No participants yet — share the room code!</p>`}
+  </div>`;
+}
+
 function renderPhase() {
   if (!S) return;
   const app = document.getElementById('app');
   startTimer();
+  let html = '';
   switch (S.phase) {
-    case 'setup':   app.innerHTML = renderSetup();   break;
-    case 'lobby':   app.innerHTML = renderLobby();   break;
-    case 'auction': app.innerHTML = renderAuction(); break;
-    case 'scoring': app.innerHTML = renderScoring(); break;
-    case 'final':   app.innerHTML = renderFinal();   break;
-    default: app.innerHTML = `<p class="muted">Unknown phase.</p>`;
+    case 'setup':   html = renderSetup();   break;
+    case 'lobby':   html = renderLobby();   break;
+    case 'auction': html = renderAuction(); break;
+    case 'scoring': html = renderScoring(); break;
+    case 'final':   html = renderFinal();   break;
+    default: html = `<p class="muted">Unknown phase.</p>`;
+  }
+  // For non-lobby phases, prepend the persistent participants card for admins
+  if (isAdmin && S.phase !== 'lobby') {
+    app.innerHTML = renderParticipantsCard() + html;
+  } else {
+    app.innerHTML = html;
   }
 }
 
@@ -655,12 +679,12 @@ function renderRoomsDashboard() {
               <div style="display:flex;justify-content:space-between"><span>♥️ Charity (${r.charityPercent}%)</span><span>${fmt$(charity)}</span></div>
             </div>
           </div>`:''}
-          ${r.participants&&r.participants.length?`<div style="margin-top:10px">
-            <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:5px">Participants</div>
-            <div style="display:flex;flex-wrap:wrap;gap:4px">
+          <div style="margin-top:10px">
+            <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:5px">Participants (${r.participants?r.participants.length:0})</div>
+            ${r.participants&&r.participants.length?`<div style="display:flex;flex-wrap:wrap;gap:4px">
               ${r.participants.map(p=>`<span style="background:#F0FBF4;border:1px solid #86EFAC;border-radius:12px;padding:2px 8px;font-size:0.72rem;font-weight:600;color:#065F46">${esc(p.name)}</span>`).join('')}
-            </div>
-          </div>`:''}
+            </div>`:`<div style="font-size:0.75rem;color:var(--muted);font-style:italic">No participants yet</div>`}
+          </div>
           <div style="margin-top:12px;display:flex;gap:7px">
             <button class="btn btn-green btn-sm" onclick="event.stopPropagation();selectAdminRoom('${esc(r.code)}')">Manage →</button>
             <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteRoom('${esc(r.code)}')">Delete</button>

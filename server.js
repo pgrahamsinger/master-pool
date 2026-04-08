@@ -143,10 +143,14 @@ let adminPassword = process.env.ADMIN_PASSWORD || 'masters2026';
 let rooms         = {};   // { [roomCode]: roomState }
 
 // ─── State persistence ────────────────────────────────────────────────────────
-const STATE_FILE = path.join(__dirname, 'state.json');
+// Primary:  Upstash Redis REST API — set UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN
+//           on Render so state survives all restarts and redeploys.
+// Fallback: local state.json (fine for dev; ephemeral on Render free tier).
+const STATE_FILE    = path.join(__dirname, 'state.json');
+const UPSTASH_URL   = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const REDIS_KEY     = 'calcutta_state';
 
-// Create the default first room, using ROOM_CODE env var if set so the code
-// stays stable across Render redeploys.
 function makeDefaultRoom() {
   const r = createRoom();
   if (process.env.ROOM_CODE) r.code = process.env.ROOM_CODE.trim().toUpperCase();
@@ -154,57 +158,85 @@ function makeDefaultRoom() {
   return r;
 }
 
-(function loadState() {
-  if (!fs.existsSync(STATE_FILE)) {
-    makeDefaultRoom();
-    return;
-  }
-  try {
-    const d = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
-    // Env var always wins over stored password so Render env changes take effect
-    adminPassword = process.env.ADMIN_PASSWORD || d.adminPassword || adminPassword;
-
-    if (d.rooms && typeof d.rooms === 'object') {
-      // New multi-room format
-      for (const [code, room] of Object.entries(d.rooms)) {
-        room.settings = { ...defaultSettings(), ...room.settings };
-        room.golfers  = (room.golfers || []).map(g => ({
-          currentBid: 0, currentBidderId: null, currentBidderName: null,
-          bidCount: 0, bidderIds: [], bidHistory: [], owner: null, ownerId: null, bid: null, ...g,
-        }));
-        rooms[code] = room;
-      }
-    } else if (d.phase !== undefined) {
-      // Migrate old single-room format
-      const r         = createRoom();
-      r.code          = process.env.ROOM_CODE
-                        ? process.env.ROOM_CODE.trim().toUpperCase()
-                        : (d.roomCode || r.code);
-      r.phase         = d.phase           || 'setup';
-      r.settings      = { ...defaultSettings(), ...d.settings };
-      r.participants  = d.participants    || [];
-      r.golfers       = (d.golfers || []).map(g => ({
+function applyLoadedData(d) {
+  adminPassword = process.env.ADMIN_PASSWORD || d.adminPassword || adminPassword;
+  if (d.rooms && typeof d.rooms === 'object') {
+    for (const [code, room] of Object.entries(d.rooms)) {
+      room.settings = { ...defaultSettings(), ...room.settings };
+      room.golfers  = (room.golfers || []).map(g => ({
         currentBid: 0, currentBidderId: null, currentBidderName: null,
-        bidCount: 0, bidderIds: [], owner: null, ownerId: null, bid: null, ...g,
+        bidCount: 0, bidderIds: [], bidHistory: [], owner: null, ownerId: null, bid: null, ...g,
       }));
-      r.auctionEndTime  = d.auctionEndTime  || null;
-      r.scores          = d.scores          || {};
-      r.lastScoreUpdate = d.lastScoreUpdate || null;
-      if (d.settings && d.settings.adminPassword && !process.env.ADMIN_PASSWORD)
-        adminPassword = d.settings.adminPassword;
-      rooms[r.code] = r;
+      rooms[code] = room;
     }
+  } else if (d.phase !== undefined) {
+    const r        = createRoom();
+    r.code         = process.env.ROOM_CODE ? process.env.ROOM_CODE.trim().toUpperCase() : (d.roomCode || r.code);
+    r.phase        = d.phase        || 'setup';
+    r.settings     = { ...defaultSettings(), ...d.settings };
+    r.participants = d.participants || [];
+    r.golfers      = (d.golfers || []).map(g => ({
+      currentBid: 0, currentBidderId: null, currentBidderName: null,
+      bidCount: 0, bidderIds: [], bidHistory: [], owner: null, ownerId: null, bid: null, ...g,
+    }));
+    r.auctionEndTime  = d.auctionEndTime  || null;
+    r.scores          = d.scores          || {};
+    r.lastScoreUpdate = d.lastScoreUpdate || null;
+    if (d.settings?.adminPassword && !process.env.ADMIN_PASSWORD) adminPassword = d.settings.adminPassword;
+    rooms[r.code] = r;
+  }
+  if (!Object.keys(rooms).length) makeDefaultRoom();
+  console.log(`✓ Loaded ${Object.keys(rooms).length} room(s)`);
+}
 
-    if (!Object.keys(rooms).length) makeDefaultRoom();
-    console.log(`✓ Loaded ${Object.keys(rooms).length} room(s)`);
-  } catch (e) {
-    console.log('⚠ Could not load state – starting fresh');
+async function loadState() {
+  let d = null;
+
+  // 1. Try Upstash Redis — persists across ALL Render restarts and redeploys
+  if (UPSTASH_URL && UPSTASH_TOKEN) {
+    try {
+      const res  = await fetch(`${UPSTASH_URL}/get/${REDIS_KEY}`, {
+        headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
+      });
+      const json = await res.json();
+      if (json.result) {
+        d = JSON.parse(json.result);
+        console.log('✓ State loaded from Upstash Redis');
+      } else {
+        console.log('ℹ Upstash: no saved state yet — starting fresh');
+      }
+    } catch (e) {
+      console.error('⚠ Upstash load error:', e.message, '— falling back to local file');
+    }
+  }
+
+  // 2. Fall back to local file (dev / first run before Upstash is set up)
+  if (!d && fs.existsSync(STATE_FILE)) {
+    try {
+      d = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+      console.log('✓ State loaded from local file (tip: add Upstash env vars for cloud persistence)');
+    } catch { /* ignore corrupt file */ }
+  }
+
+  if (!d) { makeDefaultRoom(); return; }
+  try { applyLoadedData(d); } catch (e) {
+    console.log('⚠ Could not apply saved state – starting fresh:', e.message);
     makeDefaultRoom();
   }
-})();
+}
 
 const saveState = () => {
-  try { fs.writeFileSync(STATE_FILE, JSON.stringify({ adminPassword, rooms }, null, 2)); } catch {}
+  const data = JSON.stringify({ adminPassword, rooms }, null, 2);
+  // Write local file instantly (cache / dev fallback)
+  try { fs.writeFileSync(STATE_FILE, data); } catch {}
+  // Async-fire to Upstash (survives Render restarts)
+  if (UPSTASH_URL && UPSTASH_TOKEN) {
+    fetch(`${UPSTASH_URL}/set/${REDIS_KEY}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${UPSTASH_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).catch(e => console.error('⚠ Upstash save error:', e.message));
+  }
 };
 
 const broadcastRoom = (code) => {
@@ -446,10 +478,15 @@ ra('/phase', (req, res, room) => {
 
 ra('/roomcode/regenerate', (req, res, room) => {
   const oldCode = room.code;
-  const newCode = genRoomCode();
+  let newCode = req.body.customCode
+    ? req.body.customCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 20)
+    : genRoomCode();
+  if (!newCode) return res.status(400).json({ error: 'Room code cannot be empty.' });
+  if (newCode !== oldCode && rooms[newCode])
+    return res.status(400).json({ error: `Room code "${newCode}" is already in use.` });
   room.code = newCode;
   rooms[newCode] = room;
-  delete rooms[oldCode];
+  if (newCode !== oldCode) delete rooms[oldCode];
   saveState();
   broadcastRoom(newCode);
   res.json({ ok: true, roomCode: newCode });
@@ -615,17 +652,24 @@ io.on('connection', socket => {
   });
 });
 
-// ─── Start ────────────────────────────────────────────────────────────────────
+// ─── Start (load state first, then listen) ────────────────────────────────────
 const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, '0.0.0.0', () => {
-  const localIP = Object.values(os.networkInterfaces()).flat()
-    .find(i => i?.family === 'IPv4' && !i.internal)?.address || 'localhost';
-  const codes = Object.keys(rooms).join(', ');
-  console.log("\n🏌️  Graham's Masters Pool 2026");
-  console.log('══════════════════════════════════════');
-  console.log(`  Local:      http://localhost:${PORT}`);
-  console.log(`  Network:    http://${localIP}:${PORT}`);
-  console.log(`  Room(s):    ${codes}`);
-  console.log(`  Admin pw:   ${adminPassword}`);
-  console.log('══════════════════════════════════════\n');
+loadState().then(() => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
+    const localIP = Object.values(os.networkInterfaces()).flat()
+      .find(i => i?.family === 'IPv4' && !i.internal)?.address || 'localhost';
+    const codes = Object.keys(rooms).join(', ');
+    const upstashOk = UPSTASH_URL && UPSTASH_TOKEN ? '✓ Upstash Redis' : '⚠ local file only (add Upstash env vars)';
+    console.log("\n🏌️  Graham's Masters Pool 2026");
+    console.log('══════════════════════════════════════');
+    console.log(`  Local:      http://localhost:${PORT}`);
+    console.log(`  Network:    http://${localIP}:${PORT}`);
+    console.log(`  Room(s):    ${codes}`);
+    console.log(`  Admin pw:   ${adminPassword}`);
+    console.log(`  Persistence: ${upstashOk}`);
+    console.log('══════════════════════════════════════\n');
+  });
+}).catch(err => {
+  console.error('Fatal error loading state:', err);
+  process.exit(1);
 });

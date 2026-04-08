@@ -840,10 +840,18 @@ function renderSetup() {
     <div class="rclabel">Room Code — share with participants</div>
     <div class="rc">${esc(S.code)}</div>
     <div class="rcsub">Participants enter this on the join screen</div>
-    <div style="margin-top:10px;display:flex;gap:7px;justify-content:center;flex-wrap:wrap">
+    <div style="margin-top:12px;display:flex;gap:7px;justify-content:center;flex-wrap:wrap">
       <button class="btn btn-gold btn-sm" onclick="copyCode()">Copy Code</button>
-      <button class="btn btn-out btn-sm" style="color:white;border-color:rgba(255,255,255,0.4)" onclick="regenCode()">Regenerate</button>
     </div>
+    <div style="margin-top:12px;display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap">
+      <input type="text" id="custom-code-input" placeholder="Custom code (e.g. MASTERS26)"
+        style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);color:white;border-radius:7px;padding:6px 10px;font-size:0.82rem;width:180px;text-transform:uppercase"
+        oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"
+        maxlength="20" />
+      <button class="btn btn-out btn-sm" style="color:white;border-color:rgba(255,255,255,0.4)" onclick="setRoomCode()">Set Code</button>
+      <button class="btn btn-out btn-sm" style="color:white;border-color:rgba(255,255,255,0.4)" onclick="regenCode()">Random</button>
+    </div>
+    <div style="font-size:0.68rem;color:rgba(255,255,255,0.6);margin-top:6px">Type a custom code above, or click Random to generate one</div>
   </div>
 
   <div class="card">
@@ -1021,7 +1029,15 @@ async function addGolfer() {
 async function removeGolfer(id){ await adminAPI('/golfers',{golfers:S.golfers.filter(g=>g.id!==id)}); }
 async function openLobby(){ await adminAPI('/phase',{phase:'lobby'}); showToast('Lobby open — share the room code!'); }
 async function copyCode(){ try{await navigator.clipboard.writeText(S.code);showToast('Code copied: '+S.code);}catch{showToast('Code: '+S.code);} }
-async function regenCode(){ if(!confirm('Generate a new room code? Existing participants will need the new code.'))return; const d=await adminAPI('/roomcode/regenerate',{}); if(d.roomCode) myRoomCode=d.roomCode; showToast('New code generated'); }
+async function regenCode(){ if(!confirm('Generate a random room code? Existing participants will need the new code.'))return; const d=await adminAPI('/roomcode/regenerate',{}); if(d&&d.roomCode){myRoomCode=d.roomCode;showToast('New code: '+d.roomCode);} }
+async function setRoomCode(){
+  const val=(document.getElementById('custom-code-input')?.value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(!val){showToast('Enter a code first',true);return;}
+  if(val===S.code){showToast('That is already the current code',true);return;}
+  if(!confirm(`Set room code to "${val}"? Anyone who has already joined will need to re-enter this new code.`))return;
+  const d=await adminAPI('/roomcode/regenerate',{customCode:val});
+  if(d&&d.roomCode){myRoomCode=d.roomCode;showToast('Room code set to '+d.roomCode);}
+}
 
 // ──────────────────────────────────────────────
 //  LOBBY

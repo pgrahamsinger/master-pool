@@ -16,3 +16,9 @@ services:
         value: MAST26
       - key: ADMIN_PASSWORD
         value: masters2026
+      # These two are managed in the Render dashboard (not synced from this file)
+      # so your secrets are never committed to GitHub.
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false

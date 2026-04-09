@@ -225,19 +225,23 @@ async function loadState() {
   }
 }
 
-const saveState = () => {
+// Async save — awaitable (used on SIGTERM / critical paths)
+async function saveStateAsync() {
   const data = JSON.stringify({ adminPassword, rooms }, null, 2);
-  // Write local file instantly (cache / dev fallback)
   try { fs.writeFileSync(STATE_FILE, data); } catch {}
-  // Async-fire to Upstash (survives Render restarts)
   if (UPSTASH_URL && UPSTASH_TOKEN) {
-    fetch(`${UPSTASH_URL}/set/${REDIS_KEY}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${UPSTASH_TOKEN}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    }).catch(e => console.error('⚠ Upstash save error:', e.message));
+    try {
+      await fetch(`${UPSTASH_URL}/set/${REDIS_KEY}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${UPSTASH_TOKEN}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+    } catch (e) { console.error('⚠ Upstash save error:', e.message); }
   }
-};
+}
+
+// Fire-and-forget wrapper used in normal bid/phase flows
+const saveState = () => saveStateAsync().catch(e => console.error('⚠ saveState error:', e.message));
 
 const broadcastRoom = (code) => {
   if (rooms[code]) io.to(`room:${code}`).emit('state_update', rooms[code]);
@@ -340,6 +344,27 @@ app.post('/api/admin/rooms/:code/delete', requireAdmin, (req, res) => {
   delete rooms[code];
   saveState();
   res.json({ ok: true });
+});
+
+// Restore a full room from a JSON payload (for disaster recovery)
+app.post('/api/admin/restore-room', requireAdmin, (req, res) => {
+  const room = req.body;
+  if (!room || !room.code) return res.status(400).json({ error: 'Invalid room data — must include code' });
+  const code = room.code.trim().toUpperCase();
+  room.code = code;
+  // Ensure all golfers have required fields
+  if (Array.isArray(room.golfers)) {
+    room.golfers = room.golfers.map(g => ({
+      bidCount: 0, bidderIds: [], bidHistory: [],
+      currentBid: 0, currentBidderId: null, currentBidderName: null,
+      owner: null, ownerId: null, bid: null,
+      ...g,
+    }));
+  }
+  rooms[code] = room;
+  saveState();
+  broadcastRoom(code);
+  res.json({ ok: true, code, phase: room.phase, participants: (room.participants || []).length });
 });
 
 // Change global admin password
@@ -650,6 +675,16 @@ io.on('connection', socket => {
   socket.on('leave_room', (code) => {
     if (code) socket.leave(`room:${String(code).toUpperCase()}`);
   });
+});
+
+// ─── Graceful shutdown — save state before Render kills the process ──────────
+// Render sends SIGTERM ~10 s before hard-killing on redeploy / scale-down.
+// Awaiting the Upstash write here ensures state is not lost on deploys.
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received — saving state to Upstash before shutdown…');
+  await saveStateAsync();
+  console.log('State saved. Goodbye.');
+  process.exit(0);
 });
 
 // ─── Start (load state first, then listen) ────────────────────────────────────

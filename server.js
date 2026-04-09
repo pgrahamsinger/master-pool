@@ -386,9 +386,10 @@ app.get('/api/room/:code/state', (req, res) => {
 
 // Join with room code
 app.post('/api/join', (req, res) => {
-  const { roomCode, name, email } = req.body || {};
-  if (!roomCode || !name || !email)
-    return res.status(400).json({ error: 'Room code, name, and email are required.' });
+  const { roomCode, firstName, lastName, email } = req.body || {};
+  if (!roomCode || !firstName || !lastName || !email)
+    return res.status(400).json({ error: 'Room code, first name, last name, and email are required.' });
+
   const room = rooms[roomCode.trim().toUpperCase()];
   if (!room)
     return res.status(401).json({ error: 'Invalid room code. Check with your pool admin.' });
@@ -396,15 +397,28 @@ app.post('/api/join', (req, res) => {
     return res.status(400).json({ error: 'Registration is not open yet.' });
 
   const normEmail = email.trim().toLowerCase();
-  const existing  = room.participants.find(p => p.email === normEmail);
-  if (existing)
-    return res.json({ ok: true, participant: existing, roomCode: room.code, rejoin: true });
+  const fullName  = `${firstName.trim()} ${lastName.trim()}`;
+  const normName  = fullName.toLowerCase();
+
+  // Returning participant — let them back in by email
+  const existingByEmail = room.participants.find(p => p.email === normEmail);
+  if (existingByEmail)
+    return res.json({ ok: true, participant: existingByEmail, roomCode: room.code, rejoin: true });
+
+  // Block duplicate names (case-insensitive) to prevent accidental double registration
+  const existingByName = room.participants.find(p => (p.name || '').toLowerCase() === normName);
+  if (existingByName)
+    return res.status(400).json({
+      error: `"${fullName}" is already registered. If that's you, use the same email address you signed up with to rejoin.`,
+    });
 
   const participant = {
-    id:       crypto.randomUUID(),
-    name:     name.trim(),
-    email:    normEmail,
-    joinedAt: new Date().toISOString(),
+    id:        crypto.randomUUID(),
+    firstName: firstName.trim(),
+    lastName:  lastName.trim(),
+    name:      fullName,
+    email:     normEmail,
+    joinedAt:  new Date().toISOString(),
   };
   room.participants.push(participant);
   saveState();
@@ -437,9 +451,10 @@ app.post('/api/room/:code/bid', (req, res) => {
     return res.status(400).json({ error: `Minimum bid is $${minBid}.` });
 
   const leading = room.golfers.filter(g => g.currentBidderId === participantId && g.id !== golferId).length;
-  if (leading >= room.settings.maxGolfersPerPerson)
+  const maxG = room.settings.maxGolfersPerPerson;
+  if (maxG > 0 && leading >= maxG)
     return res.status(400).json({
-      error: `You're already leading on ${room.settings.maxGolfersPerPerson} golfers (the maximum). You must be outbid on one before bidding on another.`,
+      error: `You're already leading on ${maxG} golfer${maxG === 1 ? '' : 's'} (the maximum). You must be outbid on one before bidding on another.`,
     });
 
   // Anti-snipe: extend timer if bid comes in close to the end

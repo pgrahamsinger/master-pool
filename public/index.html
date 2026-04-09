@@ -245,10 +245,14 @@
         style="text-transform:uppercase;letter-spacing:0.12em;font-weight:700;font-size:1.05rem;text-align:center"
         maxlength="20" oninput="this.value=this.value.toUpperCase()" />
     </div>
-    <div class="fg"><label>Your Name</label>
-      <input type="text" id="j-name" placeholder="First Last" /></div>
+    <div class="fg" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div><label>First Name</label>
+        <input type="text" id="j-fname" placeholder="First" autocomplete="given-name" /></div>
+      <div><label>Last Name</label>
+        <input type="text" id="j-lname" placeholder="Last" autocomplete="family-name" /></div>
+    </div>
     <div class="fg"><label>Your Email</label>
-      <input type="email" id="j-email" placeholder="your@email.com"
+      <input type="email" id="j-email" placeholder="your@email.com" autocomplete="email"
         onkeydown="if(event.key==='Enter')submitJoin()" /></div>
     <button class="join-btn" onclick="submitJoin()">Join Pool →</button>
     <div id="join-error" class="join-error"></div>
@@ -369,7 +373,16 @@
       <div class="fg"><label>3rd Place %</label><input type="number" id="ms-p3" min="0" max="100" /></div>
     </div>
     <div class="g3">
-      <div class="fg"><label>Max Golfers/Person</label><input type="number" id="ms-max" min="1" /></div>
+      <div class="fg"><label>Max Golfers/Person</label>
+        <select id="ms-max">
+          <option value="0">No Limit</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="10">10</option>
+        </select></div>
       <div class="fg"><label>Min Bid Increment ($)</label><input type="number" id="ms-inc" min="1" /></div>
       <div class="fg"><label>Starting Bid ($)</label><input type="number" id="ms-start" min="1" /></div>
     </div>
@@ -413,6 +426,7 @@ let adminRooms     = [];     // summary list from GET /api/admin/rooms
 let sTab           = 'standings';
 let bidGolfId      = null;
 let timerIval      = null;
+let scoreIval      = null;
 let gFilter        = 'all';
 
 // ──────────────────────────────────────────────
@@ -662,6 +676,14 @@ function fmtCountdown(endTime) {
 
 function startTimer() {
   if(timerIval) clearInterval(timerIval);
+  // Auto-refresh leaderboard scores every 5 minutes during scoring / final phase
+  if(scoreIval) clearInterval(scoreIval);
+  if(S && ['scoring','final'].includes(S.phase)) {
+    scoreIval = setInterval(() => {
+      if(['scoring','final'].includes(S?.phase)) refreshScores();
+      else { clearInterval(scoreIval); scoreIval = null; }
+    }, 5 * 60 * 1000);
+  }
   if(S && S.phase==='auction' && S.auctionEndTime) {
     timerIval = setInterval(()=>{
       const clk=document.getElementById('clock');
@@ -678,25 +700,29 @@ function startTimer() {
 //  JOIN
 // ──────────────────────────────────────────────
 async function submitJoin() {
-  const code  = document.getElementById('j-code').value.trim().toUpperCase();
-  const name  = document.getElementById('j-name').value.trim();
-  const email = document.getElementById('j-email').value.trim();
-  const errEl = document.getElementById('join-error');
+  const code      = document.getElementById('j-code').value.trim().toUpperCase();
+  const firstName = document.getElementById('j-fname').value.trim();
+  const lastName  = document.getElementById('j-lname').value.trim();
+  const email     = document.getElementById('j-email').value.trim();
+  const errEl     = document.getElementById('join-error');
   errEl.textContent = '';
-  if(!code||!name||!email){ errEl.textContent='Please fill in all fields.'; return; }
-  if(!email.includes('@')){ errEl.textContent='Enter a valid email.'; return; }
+  if (!code || !firstName || !lastName || !email) {
+    errEl.textContent = 'Please fill in all fields — room code, first name, last name, and email.'; return;
+  }
+  if (!email.includes('@')) { errEl.textContent = 'Enter a valid email address.'; return; }
   try {
-    const res  = await fetch('/api/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({roomCode:code,name,email})});
+    const res  = await fetch('/api/join', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roomCode: code, firstName, lastName, email }) });
     const data = await res.json();
-    if(!data.ok){ errEl.textContent=data.error||'Could not join.'; return; }
+    if (!data.ok) { errEl.textContent = data.error || 'Could not join.'; return; }
     me = data.participant;
     subscribeRoom(data.roomCode);
     saveSession();
     // Fetch initial state since socket may not have responded yet
-    const st = await fetch(`/api/room/${data.roomCode}/state`).then(r=>r.json());
+    const st = await fetch(`/api/room/${data.roomCode}/state`).then(r => r.json());
     S = st;
     showMain();
-  } catch(e) { errEl.textContent='Cannot reach server. Make sure it is running.'; }
+  } catch(e) { errEl.textContent = 'Cannot reach server. Make sure it is running.'; }
 }
 
 // ──────────────────────────────────────────────
@@ -866,7 +892,8 @@ function renderSetup() {
       <div class="fg"><label>3rd Place %</label><input type="number" id="s-p3" value="${S.settings.payoutSplit[2]}" /></div>
     </div>
     <div class="g3">
-      <div class="fg"><label>Max Golfers/Person</label><input type="number" id="s-max" value="${S.settings.maxGolfersPerPerson}" min="1" /></div>
+      <div class="fg"><label>Max Golfers/Person</label>
+        <select id="s-max">${[0,1,2,3,4,5,10].map(v=>`<option value="${v}"${S.settings.maxGolfersPerPerson===v?' selected':''}>${v===0?'No Limit':v}</option>`).join('')}</select></div>
       <div class="fg"><label>Min Bid Increment ($)</label><input type="number" id="s-inc" value="${S.settings.minBidIncrement}" min="1" /></div>
       <div class="fg"><label>Starting Bid ($)</label><input type="number" id="s-start" value="${S.settings.startingBid}" min="1" /></div>
     </div>
@@ -1091,7 +1118,8 @@ function renderAuction() {
   const ended   = !S.auctionEndTime || Date.now() > new Date(S.auctionEndTime).getTime();
   const myLeads = S.golfers.filter(g=>g.currentBidderId===me?.id);
   const myOB    = S.golfers.filter(g=>g.bidderIds?.includes(me?.id)&&g.currentBidderId!==me?.id);
-  const atMax   = myLeads.length >= S.settings.maxGolfersPerPerson;
+  const maxG    = S.settings.maxGolfersPerPerson;
+  const atMax   = maxG > 0 && myLeads.length >= maxG;
   const pot     = S.golfers.reduce((s,g)=>s+(g.currentBid||0),0);
 
   let visible = [...S.golfers];
@@ -1106,7 +1134,7 @@ function renderAuction() {
     <div><div class="tlabel">Live Pot</div>
       <div style="font-size:1.4rem;font-weight:700;color:var(--gold-lt)">${fmt$(pot)}</div></div>
     <div><div class="tlabel">Your Golfers</div>
-      <div style="font-size:1.4rem;font-weight:700;color:var(--gold-lt)">${myLeads.length} / ${S.settings.maxGolfersPerPerson}</div></div>
+      <div style="font-size:1.4rem;font-weight:700;color:var(--gold-lt)">${myLeads.length}${maxG > 0 ? ' / ' + maxG : ''}</div></div>
     ${isAdmin?`<div style="display:flex;gap:7px;flex-wrap:wrap">
       <button class="btn btn-gold btn-sm" onclick="openStartModal()">⏱ Adjust</button>
       <button class="btn btn-danger btn-sm" onclick="doFinalize()">End Now</button>
@@ -1121,10 +1149,10 @@ function renderAuction() {
   </div>`:''}
 
   ${atMax&&!ended?`<div style="background:#EEF7EE;border:1px solid #86EFAC;border-radius:9px;padding:9px 14px;margin-bottom:13px;font-size:0.83rem;color:#065F46">
-    ✅ Leading on maximum (${S.settings.maxGolfersPerPerson}) golfers — you need to be outbid on one to bid on another.
+    ✅ Leading on maximum (${maxG}) golfers — you need to be outbid on one to bid on another.
   </div>`:''}
 
-  ${myLeads.length?`<div id="my-strip"><div class="ms-title">Your Golfers (${myLeads.length}/${S.settings.maxGolfersPerPerson})</div>
+  ${myLeads.length?`<div id="my-strip"><div class="ms-title">Your Golfers (${myLeads.length}${maxG > 0 ? '/' + maxG : ''})</div>
     <div class="my-chips">${myLeads.map(g=>`<div class="my-chip"><span class="cn">${esc(g.name)}</span><span class="ca">${fmt$(g.currentBid)}</span></div>`).join('')}</div>
   </div>`:''}
 
@@ -1159,7 +1187,7 @@ function renderCard(g, ended, atMax) {
   let btnCls='gc-bid-btn ', btnTxt='';
   if(ended)              { btnCls+='ended'; btnTxt='Auction Ended'; }
   else if(isLead)        { btnCls+='lead';  btnTxt='✓ You\'re Leading'; }
-  else if(atMax&&!isLead){ btnCls+='atmax'; btnTxt=`Max ${S.settings.maxGolfersPerPerson} reached`; }
+  else if(atMax&&!isLead){ btnCls+='atmax'; btnTxt=`Max ${maxG} reached`; }
   else                   { btnCls+='can';   btnTxt=`Bid ${fmt$(minBid)}+`; }
 
   return `<div class="${cls}" id="gc-${g.id}">
@@ -1422,7 +1450,7 @@ function renderScoring() {
   const lastUp=S.lastScoreUpdate?new Date(S.lastScoreUpdate).toLocaleTimeString():'Never';
   return `
   <div style="text-align:center;margin-bottom:4px"><h2 style="font-size:1.35rem;color:var(--green)">⛳ Live Leaderboard</h2></div>
-  <div class="muted" style="text-align:center;margin-bottom:18px;font-size:0.8rem">Last updated: ${lastUp}</div>
+  <div class="muted" style="text-align:center;margin-bottom:18px;font-size:0.8rem">Last updated: ${lastUp} &nbsp;·&nbsp; auto-refreshes every 5 min</div>
   ${renderPotBreakdown()}
   ${renderPaymentSummary()}
   ${isAdmin?`<div id="admin-panel"><div class="apl">⚙ Admin</div><div class="aflex">
@@ -1663,13 +1691,16 @@ function showToast(msg, err=false) {
     // Room not found (server restarted/redeployed) — pre-fill join form so
     // the user can rejoin in one click without re-typing everything.
     showJoin();
-    const codeEl  = document.getElementById('j-code');
-    const nameEl  = document.getElementById('j-name');
-    const emailEl = document.getElementById('j-email');
-    const errEl   = document.getElementById('join-error');
+    const codeEl   = document.getElementById('j-code');
+    const fnameEl  = document.getElementById('j-fname');
+    const lnameEl  = document.getElementById('j-lname');
+    const emailEl  = document.getElementById('j-email');
+    const errEl    = document.getElementById('join-error');
     if (codeEl)  codeEl.value  = myRoomCode;
-    if (nameEl)  nameEl.value  = me.name  || '';
     if (emailEl) emailEl.value = me.email || '';
+    // Pre-fill first/last from stored participant
+    if (fnameEl) fnameEl.value = me.firstName || (me.name || '').split(' ')[0] || '';
+    if (lnameEl) lnameEl.value = me.lastName  || (me.name || '').split(' ').slice(1).join(' ') || '';
     if (errEl)   errEl.textContent = 'The server was restarted — your info is pre-filled below. Just click Join Pool to continue.';
     return;
   }

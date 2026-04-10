@@ -415,13 +415,6 @@ app.post('/api/join', (req, res) => {
   if (existingByEmail)
     return res.json({ ok: true, participant: existingByEmail, roomCode: room.code, rejoin: true });
 
-  // Block duplicate names (case-insensitive) to prevent accidental double registration
-  const existingByName = room.participants.find(p => (p.name || '').toLowerCase() === normName);
-  if (existingByName)
-    return res.status(400).json({
-      error: `"${fullName}" is already registered. If that's you, use the same email address you signed up with to rejoin.`,
-    });
-
   const participant = {
     id:        crypto.randomUUID(),
     firstName: firstName.trim(),

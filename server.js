@@ -231,13 +231,15 @@ async function saveStateAsync() {
   try { fs.writeFileSync(STATE_FILE, data); } catch {}
   if (UPSTASH_URL && UPSTASH_TOKEN) {
     try {
-      const resp = await fetch(`${UPSTASH_URL}/set/${REDIS_KEY}`, {
+      // Use the Upstash pipeline format — unambiguous string storage
+      const resp = await fetch(`${UPSTASH_URL}/pipeline`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${UPSTASH_TOKEN}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify([['SET', REDIS_KEY, data]]),
       });
       const result = await resp.json();
-      if (result.result !== 'OK') {
+      const ok = Array.isArray(result) && result[0]?.result === 'OK';
+      if (!ok) {
         console.error('⚠ Upstash save unexpected response:', JSON.stringify(result));
       } else {
         console.log('✓ State saved to Upstash —', Object.keys(rooms).join(', '));

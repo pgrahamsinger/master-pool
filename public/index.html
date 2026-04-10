@@ -798,8 +798,9 @@ function renderRoomsDashboard() {
               ${r.participants.map(p=>`<span style="background:#F0FBF4;border:1px solid #86EFAC;border-radius:12px;padding:2px 8px;font-size:0.72rem;font-weight:600;color:#065F46">${esc(p.name)}</span>`).join('')}
             </div>`:`<div style="font-size:0.75rem;color:var(--muted);font-style:italic">No participants yet</div>`}
           </div>
-          <div style="margin-top:12px;display:flex;gap:7px">
+          <div style="margin-top:12px;display:flex;gap:7px;flex-wrap:wrap">
             <button class="btn btn-green btn-sm" onclick="event.stopPropagation();selectAdminRoom('${esc(r.code)}')">Manage →</button>
+            <button class="btn btn-out btn-sm" onclick="event.stopPropagation();exportEmails('${esc(r.code)}')">⬇ Export Emails</button>
             <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteRoom('${esc(r.code)}')">Delete</button>
           </div>
         </div>`}).join('')}
@@ -834,6 +835,25 @@ async function deleteRoom(code) {
     if(d.ok){ showToast('Room deleted'); await refreshAdminRooms(); renderRoomsDashboard(); }
     else showToast(d.error||'Could not delete',true);
   } catch { showToast('Network error',true); }
+}
+
+async function exportEmails(code) {
+  try {
+    const r = await fetch('/api/admin/rooms', {headers:{'x-admin-password':adminPw}});
+    const d = await r.json();
+    const room = d.rooms.find(rm => rm.code === code);
+    if (!room || !room.participants || !room.participants.length) {
+      showToast('No participants to export', true); return;
+    }
+    const rows = [['Name','Email'], ...room.participants.map(p=>[p.name, p.email])];
+    const csv  = rows.map(r => r.map(v => `"${(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(blob);
+    a.download = `${code}-participants.csv`;
+    a.click();
+    showToast(`Exported ${room.participants.length} participants`);
+  } catch { showToast('Export failed', true); }
 }
 
 // ──────────────────────────────────────────────

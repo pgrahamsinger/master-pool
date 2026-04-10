@@ -231,11 +231,17 @@ async function saveStateAsync() {
   try { fs.writeFileSync(STATE_FILE, data); } catch {}
   if (UPSTASH_URL && UPSTASH_TOKEN) {
     try {
-      await fetch(`${UPSTASH_URL}/set/${REDIS_KEY}`, {
+      const resp = await fetch(`${UPSTASH_URL}/set/${REDIS_KEY}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${UPSTASH_TOKEN}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+      const result = await resp.json();
+      if (result.result !== 'OK') {
+        console.error('⚠ Upstash save unexpected response:', JSON.stringify(result));
+      } else {
+        console.log('✓ State saved to Upstash —', Object.keys(rooms).join(', '));
+      }
     } catch (e) { console.error('⚠ Upstash save error:', e.message); }
   }
 }
@@ -295,6 +301,10 @@ setInterval(() => {
   if (dirty) saveState();
 }, 5000);
 
+// Heartbeat save every 2 minutes — guarantees state is in Upstash
+// even if a previous async save was lost mid-flight.
+setInterval(() => saveStateAsync().catch(() => {}), 2 * 60 * 1000);
+
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 const requireAdmin = (req, res, next) => {
   if (req.headers['x-admin-password'] !== adminPassword)
@@ -347,7 +357,7 @@ app.post('/api/admin/rooms/:code/delete', requireAdmin, (req, res) => {
 });
 
 // Restore a full room from a JSON payload (for disaster recovery)
-app.post('/api/admin/restore-room', requireAdmin, (req, res) => {
+app.post('/api/admin/restore-room', requireAdmin, async (req, res) => {
   const room = req.body;
   if (!room || !room.code) return res.status(400).json({ error: 'Invalid room data — must include code' });
   const code = room.code.trim().toUpperCase();
@@ -362,7 +372,7 @@ app.post('/api/admin/restore-room', requireAdmin, (req, res) => {
     }));
   }
   rooms[code] = room;
-  saveState();
+  await saveStateAsync();   // await so response only returns after Upstash confirms
   broadcastRoom(code);
   res.json({ ok: true, code, phase: room.phase, participants: (room.participants || []).length });
 });
